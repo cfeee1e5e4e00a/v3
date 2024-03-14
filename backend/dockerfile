@@ -1,0 +1,15 @@
+FROM python:3.12-bookworm
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y build-essential
+RUN pip3 install poetry
+
+COPY . .
+COPY poetry.lock pyproject.toml ./
+RUN poetry install --no-root --no-directory
+
+COPY ./backend ./backend
+
+CMD ["uvicorn" "backend.main:app"]
+
+EXPOSE 8000
