@@ -7,12 +7,22 @@ services:
       - POSTGRES_USER=nti
       - POSTGRES_PASSWORD=nti
       - POSTGRES_DB=nti
+      - PGDATA=/data/postgres
     ports:
       - "5432:5432"
+    restart: unless-stopped
+    volumes:
+      - postgres:/data/postgres
+    
 
-  mqtt:
+  backend:
+    build: backend
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+  # mqtt:
 
-  grafana:
+  # grafana:
 
   influxdb:
     image: "influx:2.7.5-alpine"
@@ -35,7 +45,8 @@ services:
   telegraf:
     image: "telegraf:1.29.5"
 
-networks:
+# networks:
 
 volumes:
   influx_data:
+  postgres:
