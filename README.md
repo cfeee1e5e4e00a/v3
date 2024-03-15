@@ -2,13 +2,13 @@
 
 ### InfluxDB
 
--   Адрес брокера: `mqtt://influx.cfeee1e5e4e00a.ru` (WIP)
+-   Адрес брокера: `influx.cfeee1e5e4e00a.ru:8086` (WIP)
 -   Пользователь: `nti`
 -   Пароль: `cfeee1e5e4e00a`
 
 ### Grafana
 
--   Адрес: `mqtt://grafana.cfeee1e5e4e00a.ru` (WIP)
+-   Адрес: `http://grafana.cfeee1e5e4e00a.ru` (WIP)
 -   Пользователь: `nti`
 -   Пароль: `cfeee1e5e4e00a`
 
