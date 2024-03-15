@@ -50,13 +50,13 @@ services:
       - DOCKER_INFLUXDB_INIT_MODE=setup
       - DOCKER_INFLUXDB_INIT_USERNAME=nti
       - DOCKER_INFLUXDB_INIT_PASSWORD=cfeee1e5e4e00a
+      - DOCKET_INFLUXDB_INIT_ADMIN_TOKEN=b8abaef03d1161f0b6718aab8eb0774d
       - DOCKER_INFLUXDB_INIT_ORG=cfeee1e5e4e00a
       - DOCKER_INFLUXDB_INIT_BUCKET=default
     ports:
       - "8086:8086"
     volumes:
       - "influxdb_data:/var/lib/influxdb2"
-      # - "./.config/influxdb:/etc/influxdb2"
 
   telegraf:
     image: "telegraf:1.29.5"
