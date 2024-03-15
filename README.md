@@ -5,6 +5,7 @@
 -   Адрес брокера: `influx.cfeee1e5e4e00a.ru:8086` (WIP)
 -   Пользователь: `nti`
 -   Пароль: `cfeee1e5e4e00a`
+-   API Token: `oGxyaChur5XTvoGRBE3FKJMtGSFxQ--GEZtUqmDhr18cMNDcBEMAQNPgtGimgUvvZMyrGrv58IXUj0D-eDO1ZQ==`
 
 ### Grafana
 
@@ -42,6 +43,12 @@ temp value=36.6
 ```
 
 ### Docker
+
+Рекомендую использовать context для работы с кластером на стенде.
+
+```
+docker context create nti --docker "host=ssh://zhenya@diarrhea.cfeee1e5e4e00a.ru"
+```
 
 #### Linux
 
