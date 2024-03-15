@@ -3,6 +3,7 @@ version: "3"
 services:
   db:
     image: "postgres:16.2-alpine3.19"
+    restart: unless-stopped
     environment:
       - POSTGRES_USER=nti
       - POSTGRES_PASSWORD=nti
@@ -10,18 +11,38 @@ services:
       - PGDATA=/data/postgres
     ports:
       - "5432:5432"
-    restart: unless-stopped
     volumes:
-      - postgres:/data/postgres
+      - "postgres_data:/data/postgres"
 
   backend:
     build: backend
+    restart: always
+    depends_on:
+      - "mqtt"
+      - "influxdb"
+      - "db"
     ports:
       - "8000:8000"
-    restart: unless-stopped
-  # mqtt:
 
-  # grafana:
+  mqtt:
+    image: "emqx/nanomq:0.21.6"
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    volumes:
+      - "./.config/nanomq/nanomq.conf:/etc/nanomq.conf"
+      - "./.config/nanomq/nanomq_pwd.conf:/etc/nanomq_pwd.conf"
+
+  grafana:
+    image: "grafana/grafana-oss:10.0.12"
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - "influxdb"
+    volumes:
+      - "grafana_data:/var/lib/grafana"
+      - "./.config/grafana/grafana.ini:/etc/grafana/grafana.ini"
 
   influxdb:
     image: "influxdb:2.7.5-alpine"
@@ -34,14 +55,24 @@ services:
     ports:
       - "8086:8086"
     volumes:
-      - "influx_data:/var/lib/influxdb2"
-      - "./.config/influx:/etc/influxdb2"
+      - "influxdb_data:/var/lib/influxdb2"
+      - "./.config/influxdb:/etc/influxdb2"
 
   telegraf:
     image: "telegraf:1.29.5"
+    depends_on:
+      - "influxdb"
+      - "mqtt"
+    volumes:
+      - "./.config/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf"
+
+  # web-proxy:
+
+  # frontend:
 
 # networks:
 
 volumes:
-  influx_data:
-  postgres:
+  influxdb_data:
+  grafana_data:
+  postgres_data:
