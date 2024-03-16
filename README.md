@@ -66,25 +66,25 @@ brew install colima
 
 1. Создать файлы `~/.colima/_lima/_config/override.yaml` и `~/.lima/_config/override.yaml` с таким содержимым:
 
-    ```yaml
-    mountType: 9p
-    mounts:
-        - location: "/Users/<username>"
-        writable: true
-        9p:
-            securityModel: mapped-xattr
-            cache: mmap
-        - location: "~"
-        writable: true
-        9p:
-            securityModel: mapped-xattr
-            cache: mmap
-        - location: /tmp/colima
-        writable: true
-        9p:
-            securityModel: mapped-xattr
-            cache: mmap
-    ```
+```yaml
+mountType: 9p
+mounts:
+- location: "/Users/<username>"
+  writable: true
+  9p:
+    securityModel: mapped-xattr
+    cache: mmap
+- location: "~"
+  writable: true
+  9p:
+    securityModel: mapped-xattr
+    cache: mmap
+- location: "/tmp/colima"
+  writable: true
+  9p:
+    securityModel: mapped-xattr
+    cache: mmap
+```
 
 2. `colima delete`
 
