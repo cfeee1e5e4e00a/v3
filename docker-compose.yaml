@@ -22,8 +22,8 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:22.0.5
-    container_name: keycloak
     environment:
+      KC_HEALTH_ENABLED: true
       KC_DB: postgres
       KC_DB_URL_HOST: db
       KC_DB_URL_DATABASE: keycloak
@@ -43,14 +43,21 @@ services:
         condition: service_healthy
     command:
       - start-dev
+    healthcheck:
+      test: ["CMD-SHELL", "curl http://localhost:8080/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    
 
   backend:
     build: backend
-    restart: no
+    restart: "no"
     depends_on:
       - "mqtt"
       - "influxdb"
       - "db"
+      - "keycloak"
     ports:
       - "8000:8000"
     environment:
