@@ -7,7 +7,7 @@ RUN pip3 install poetry
 COPY poetry.lock pyproject.toml ./
 RUN poetry install --no-root --no-directory
 
-COPY ./backend ./backend
+COPY ./src ./src
 
 CMD ["poetry", "run", "--", "uvicorn", "src.main:app", "--host", "0.0.0.0"]
 
