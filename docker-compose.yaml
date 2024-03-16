@@ -14,6 +14,29 @@ services:
     volumes:
       - "postgres_data:/data/postgres"
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:22.0.5
+    container_name: keycloak
+    environment:
+      KC_DB: postgres
+      KC_DB_URL_HOST: localhost
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_SCHEMA: public
+      KC_DB_USERNAME: "nti"
+      KC_DB_PASSWORD: "nti"
+      KC_LOG_LEVEL: INFO
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_STRICT: false
+      KEYCLOAK_ADMIN: "jija"
+      KEYCLOAK_ADMIN_PASSWORD: "ultrapodliva"
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    depends_on:
+      - db
+    command:
+      - start
+
   backend:
     build: backend
     restart: always
