@@ -19,37 +19,7 @@ services:
       interval: 10s
       timeout: 3s
       retries: 3
-
-  keycloak:
-    image: quay.io/keycloak/keycloak:22.0.5
-    environment:
-      KC_HEALTH_ENABLED: true
-      KC_DB: postgres
-      KC_DB_URL_HOST: db
-      KC_DB_URL_DATABASE: keycloak
-      KC_DB_SCHEMA: public
-      KC_DB_USERNAME: nti
-      KC_DB_PASSWORD: nti
-      KC_LOG_LEVEL: INFO
-      KC_HOSTNAME: localhost
-      KC_HOSTNAME_STRICT: false
-      KEYCLOAK_ADMIN: jija
-      KEYCLOAK_ADMIN_PASSWORD: ultrapodliva
-    ports:
-      - "8080:8080"
-      - "8443:8443"
-    depends_on:
-      db:
-        condition: service_healthy
-    command:
-      - start-dev
-    healthcheck:
-      test: ["CMD-SHELL", "curl http://localhost:8080/health"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
     
-
   backend:
     build: backend
     restart: "no"
@@ -57,19 +27,10 @@ services:
       - "mqtt"
       - "influxdb"
       - "db"
-      - "keycloak"
     ports:
       - "8000:8000"
     environment:
       - APP_LOG_LEVEL=DEBUG
-
-      - KC_URL=http://keycloak:8080/
-      - KC_REALM=master
-      - KC_CLIENT_ID=jijeobraznoe
-      - KC_CLIENT_SECRET=5tzkqg2niKhqwGKrQWu3RUiQ50J1zLBk
-      - KC_LOGIN_CALLBACK_URI=http://localhost:8000/
-      - KC_LOGOUT_CALLBACK_URI=http://localhost:8000/login
-
 
   mqtt:
     image: "emqx/nanomq:0.21.6"
