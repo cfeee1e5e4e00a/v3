@@ -1,0 +1,5 @@
+## NTI Backend
+
+## Routes
+- /
+- login

@@ -10,6 +10,6 @@ RUN poetry install --no-root --no-directory
 
 COPY ./backend ./backend
 
-CMD ["poetry", "run", "--", "uvicorn", "backend.main:app", "--host", "0.0.0.0"]
+CMD ["poetry", "run", "--", "uvicorn", "src.main:app", "--host", "0.0.0.0"]
 
 EXPOSE 8000
