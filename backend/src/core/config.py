@@ -21,16 +21,23 @@ class AppSettings(BaseSettings):
     def validate_log_level(cls, level: str) -> int:
         return ColorLogLevel.__members__.get(level).value
 
-    model_config = SettingsConfigDict(env_file=".env", env_prefix="APP_")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_prefix="APP_", extra="ignore"
+    )
 
 
 @lambda _: _()
 class KeyCloakSettings(BaseSettings):
-    url: str = ""
-    realm: str = ""
-    client_id: str = ""
-    client_secret: str = ""
-    login_callback_uri: str = ""
-    logout_callback_uri: str = ""
+    url: str
+    realm: str
+    client_id: str
+    client_secret: str
+    login_callback_uri: str
+    logout_callback_uri: str
 
-    model_config = SettingsConfigDict(env_file=".env", env_prefix="KC_")
+    # @validator("*", pre=True)
+    # @classmethod
+    # def validate_log_level(cls, _input: str) -> str:
+    #     return f'"{_input}"'
+
+    model_config = SettingsConfigDict(env_file=".env", env_prefix="KC_", extra="ignore")

@@ -2,13 +2,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.auth.routers import router as auth_router
-from src.api.routers import example_router, root_router
+from src.api.routers import example_router, log_router
 
-from src.core.config import LOGIN_CALLBACK_URI
+from src.core.config import KeyCloakSettings
 
 app = FastAPI()
 
-origins = [LOGIN_CALLBACK_URI]
+origins = [KeyCloakSettings.login_callback_uri]
 
 app.add_middleware(
     CORSMiddleware,
@@ -19,6 +19,6 @@ app.add_middleware(
     max_age=3600,
 )
 
-app.include_router(root_router)
+app.include_router(log_router)
 app.include_router(auth_router)
 app.include_router(example_router)
