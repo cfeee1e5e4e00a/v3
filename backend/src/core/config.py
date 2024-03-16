@@ -26,7 +26,6 @@ class AppSettings(BaseSettings):
 
 @lambda _: _()
 class KeyCloakSettings(BaseSettings):
-    domain: str = ""
     url: str = ""
     realm: str = ""
     client_id: str = ""

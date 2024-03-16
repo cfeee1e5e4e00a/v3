@@ -1,7 +1,7 @@
 import urllib.parse
 from typing import Annotated
 
-from fastapi import APIRouter, Cookie, Depends, HTTPException, status
+from fastapi import APIRouter, Cookie
 from starlette.responses import RedirectResponse
 from starlette.responses import Response
 
@@ -48,7 +48,6 @@ def callback(session_state: str, code: str):
         value=token,
         httponly=True,
         secure=True,
-        domain=KeyCloakSettings.domain,
         samesite="none",
     )
     return response
@@ -61,7 +60,6 @@ def logout_callback():
         "access_token",
         httponly=True,
         secure=True,
-        domain=KeyCloakSettings.domain,
         samesite="none",
     )
     return response
