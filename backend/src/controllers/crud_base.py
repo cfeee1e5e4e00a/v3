@@ -5,7 +5,7 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core import logger
+from src.core.logger import logger
 
 logger.debug("Init base CRUD")
 
