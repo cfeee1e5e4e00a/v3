@@ -1,0 +1,17 @@
+apiVersion: 1
+datasources:
+  - name: InfluxDB
+    type: influxdb
+    access: proxy
+    database: default
+    # user: nti
+    # password: cfeee1e5e4e00a
+    url: http://influxdb:8086
+    isDefault: true
+    editable: true
+    jsonData:
+      metadata:
+        - database: default
+      httpHeaderName1: 'Authorization'
+    secureJsonData:
+      httpHeaderValue1: 'Token oGxyaChur5XTvoGRBE3FKJMtGSFxQ--GEZtUqmDhr18cMNDcBEMAQNPgtGimgUvvZMyrGrv58IXUj0D-eDO1ZQ=='

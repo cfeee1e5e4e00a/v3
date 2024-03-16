@@ -45,7 +45,7 @@ services:
 
   backend:
     build: backend
-    restart: always
+    restart: no
     depends_on:
       - "mqtt"
       - "influxdb"
@@ -72,6 +72,7 @@ services:
     volumes:
       - "grafana_data:/var/lib/grafana"
       - "./.config/grafana/grafana.ini:/etc/grafana/grafana.ini"
+      - "./.config/grafana-provisioning/:/etc/grafana/provisioning"
 
   influxdb:
     image: "influxdb:2.7.5-alpine"

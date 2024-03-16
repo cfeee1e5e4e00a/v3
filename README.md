@@ -9,7 +9,7 @@
 
 ### Grafana
 
--   Адрес: `http://grafana.cfeee1e5e4e00a.ru` (WIP)
+-   Адрес: `http://grafana.cfeee1e5e4e00a.ru:3000` (WIP)
 -   Пользователь: `nti`
 -   Пароль: `cfeee1e5e4e00a`
 
