@@ -2,8 +2,8 @@ from typing import Annotated
 from pydantic import BaseModel
 from jose import jwt, JWTError
 
-from fastapi import APIRouter, Request, Depends, HTTPException
-
+from fastapi import APIRouter, Request, Depends, HTTPException, Security
+from fastapi.security.api_key import APIKeyHeader
 
 from src.schemas.user import Role, User
 from src.auth.core import (
@@ -15,6 +15,8 @@ from src.core.config import AuthSettings
 
 router = APIRouter(prefix="/auth")
 
+api_key_header = APIKeyHeader(name="Authorization")
+
 
 class LoginRequest(BaseModel):
     name: str
@@ -22,13 +24,11 @@ class LoginRequest(BaseModel):
 
 
 def get_current_user_wrapper(role: Role | None):
-    async def get_current_user(req: Request):
+    async def get_current_user(req: Request, token=Security(api_key_header)):
         credentials_exception = HTTPException(
             status_code=401,
             detail="Could not validate credentials",
         )
-        key = "Authorization"
-        token = req.headers.get(key, "")
         try:
             payload = jwt.decode(
                 token, AuthSettings.secret_key, algorithms=[AuthSettings.algorithm]
