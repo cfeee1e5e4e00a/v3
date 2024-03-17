@@ -1,24 +1,32 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 
-# from src.auth.routers import router as auth_router
+from src.auth.routes import router as auth_router
 from src.api.routers import example_router, log_router
+from src.core.db import init_db
+from src.auth.core import get_user, create_user
+from src.schemas.user import User, RoleEnum
 
-# from src.core.config import KeyCloakSettings
 
-app = FastAPI()
+async def create_user_if_not_exists(name: str, password: str, roles: list[RoleEnum]):
+    user = await get_user(name)
+    if user is None:
+        print(f'Creating user {name}')
+        await create_user(name, password, roles)
 
-# origins = [KeyCloakSettings.login_callback_uri]
-#
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=origins,
-#     allow_credentials=True,
-#     allow_methods=["POST", "PUT", "GET", "DELETE"],
-#     allow_headers=["*"],
-#     max_age=3600,
-# )
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_db()
+    await create_user_if_not_exists('admin', '123', [RoleEnum.ADMIN])
+    await create_user_if_not_exists('ilya', 'qwe', [])
+    yield
+    pass
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.include_router(log_router)
-# app.include_router(auth_router)
+app.include_router(auth_router)
 app.include_router(example_router)
