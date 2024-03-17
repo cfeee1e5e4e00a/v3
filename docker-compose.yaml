@@ -19,14 +19,17 @@ services:
       interval: 10s
       timeout: 3s
       retries: 3
-    
+
   backend:
     build: backend
     restart: "no"
     depends_on:
-      - "mqtt"
-      - "influxdb"
-      - "db"
+      db:
+        condition: service_healthy
+      mqtt:
+        condition: service_started
+      influxdb:
+        condition: service_started
     ports:
       - "8000:8000"
     environment:
@@ -50,7 +53,10 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - "influxdb"
+      influxdb:
+        condition: service_started
+      db:
+        condition: service_healthy
     volumes:
       - "grafana_data:/var/lib/grafana"
       - "./.config/grafana/grafana.ini:/etc/grafana/grafana.ini"
