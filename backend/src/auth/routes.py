@@ -24,7 +24,6 @@ def get_current_user_wrapper(role: RoleEnum | None):
         credentials_exception = HTTPException(
             status_code=401,
             detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
         )
         key = 'Authorization'
         token = req.headers.get(key, '')
@@ -63,6 +62,7 @@ async def login_user(req: LoginRequest) -> str:
         data={"sub": user.name}
     )
     return access_token
+
 
 @router.get("/admin")
 async def admin_ep(user: current_user(RoleEnum.ADMIN)):

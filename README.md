@@ -11,7 +11,7 @@
 
 -   Адрес: `http://grafana.cfeee1e5e4e00a.ru:3000` (WIP)
 -   Пользователь: `nti`
--   Пароль: `cfeee1e5e4e00a`
+-   Пароль: `ac4e70e488ffd4e525c8996573d3158e`
 
 ### MQTT
 
