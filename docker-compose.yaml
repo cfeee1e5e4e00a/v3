@@ -15,7 +15,7 @@ services:
       - "postgres_data:/data/postgres"
       - "./.config/postgres/initdb.d:/docker-entrypoint-initdb.d"
     healthcheck:
-      test: ["CMD-SHELL", "sh -c 'pg_isready -U nti -d keycloak'"]
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U nti -d nti'"]
       interval: 10s
       timeout: 3s
       retries: 3

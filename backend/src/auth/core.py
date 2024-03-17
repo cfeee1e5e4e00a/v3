@@ -3,8 +3,6 @@ from jose import jwt
 from sqlalchemy import select
 from passlib.context import CryptContext
 
-from fastapi.security import HTTPBearer
-
 from src.core.db import async_session_factory
 from src.core.config import AuthSettings
 from src.schemas.user import Role, User
