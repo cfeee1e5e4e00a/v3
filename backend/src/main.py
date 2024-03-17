@@ -5,14 +5,13 @@ from fastapi.openapi.docs import get_swagger_ui_html
 
 from src.auth.routes import router as auth_router
 from src.api.routers import example_router, log_router
-from src.core.db import init_db
 from src.auth.core import get_user, create_user
 from src.mqtt import init_mqtt
 from src.mqtt.example import mqtt_example_router
-from src.schemas.user import RoleEnum
+from src.schemas.user import Role
 
 
-async def create_user_if_not_exists(name: str, password: str, roles: list[RoleEnum]):
+async def create_user_if_not_exists(name: str, password: str, roles: list[Role]):
     user = await get_user(name)
     if user is None:
         print(f"Creating user {name}")
@@ -21,13 +20,10 @@ async def create_user_if_not_exists(name: str, password: str, roles: list[RoleEn
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-
-    await init_db()
-    await create_user_if_not_exists("admin", "123", [RoleEnum.ADMIN])
+    await create_user_if_not_exists("admin", "123", [Role.ADMIN])
     await create_user_if_not_exists("ilya", "qwe", [])
     await init_mqtt()
     yield
-    pass
 
 
 app = FastAPI(lifespan=lifespan)

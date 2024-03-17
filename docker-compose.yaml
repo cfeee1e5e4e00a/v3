@@ -31,6 +31,9 @@ services:
       - "8000:8000"
     environment:
       - APP_LOG_LEVEL=DEBUG
+      - DB_URI=postgresql+asyncpg://nti:nti@db:5432/nti
+      - AUTH_SECRET_KEY=932b25ed0d90729416ba383e384567a356b2870f302fb5d04b89dc364f4ccfd6
+      - AUTH_ALGORITHM=HS256
 
   mqtt:
     image: "emqx/nanomq:0.21.6"

@@ -7,8 +7,8 @@ RUN pip3 install poetry
 COPY poetry.lock pyproject.toml ./
 RUN poetry install --no-root --no-directory
 
-COPY src ./src/
+COPY . .
 
-CMD ["poetry", "run", "--", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD poetry run alembic upgrade head && poetry run -- uvicorn src.main:app --host 0.0.0.0 --port 8000
 
 EXPOSE 8000

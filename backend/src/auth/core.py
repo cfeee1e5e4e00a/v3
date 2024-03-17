@@ -1,20 +1,15 @@
 from datetime import datetime, timedelta, timezone
-
 from jose import jwt
-from passlib.context import CryptContext
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy import select
+from passlib.context import CryptContext
+
+from fastapi.security import HTTPBearer
 
 from src.core.db import async_session_factory
-
-from src.schemas.user import RoleEnum, User
+from src.core.config import AuthSettings
+from src.schemas.user import Role, User
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
-SECRET_KEY = '932b25ed0d90729416ba383e384567a356b2870f302fb5d04b89dc364f4ccfd6'
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60*24
 
 
 def verify_password(plain_password, hashed_password):
@@ -25,9 +20,11 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-async def create_user(name: str, password: str, roles: list[RoleEnum]):
+async def create_user(name: str, password: str, roles: list[Role]):
     async with async_session_factory() as session:
-        session.add(User(name=name, password_hash=get_password_hash(password), roles=roles))
+        session.add(
+            User(name=name, password_hash=get_password_hash(password), roles=roles)
+        )
         await session.commit()
 
 
@@ -46,9 +43,13 @@ async def auth_user(name: str, password: str) -> User | None:
     return user
 
 
-def create_access_token(data: dict):
+def create_access_token(data: dict) -> str:
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(timezone.utc) + timedelta(
+        minutes=AuthSettings.access_token_expire_minutes
+    )
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(
+        to_encode, AuthSettings.secret_key, algorithm=AuthSettings.algorithm
+    )
     return encoded_jwt

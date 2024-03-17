@@ -25,3 +25,20 @@ class AppSettings(BaseSettings):
         env_file=".env", env_prefix="APP_", extra="ignore"
     )
 
+
+@lambda _: _()
+class DBSettings(BaseSettings):
+    uri: str
+
+    model_config = SettingsConfigDict(env_file=".env", env_prefix="DB_", extra="ignore")
+
+
+@lambda _: _()
+class AuthSettings(BaseSettings):
+    secret_key: str
+    algorithm: str
+    access_token_expire_minutes: int = 60 * 24
+
+    model_config = SettingsConfigDict(
+        env_file=".env", env_prefix="AUTH_", extra="ignore"
+    )
