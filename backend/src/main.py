@@ -2,8 +2,6 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.openapi.docs import get_swagger_ui_html
-from alembic import command
-from alembic.config import Config
 
 from src.auth.routes import router as auth_router
 from src.api.routers import example_router, log_router
@@ -11,11 +9,6 @@ from src.auth.core import get_user, create_user
 from src.mqtt import init_mqtt
 from src.mqtt.example import mqtt_example_router
 from src.schemas.user import Role
-
-
-def run_migrations():
-    alembic_cfg = Config("alembic.ini")
-    command.upgrade(alembic_cfg, "head")
 
 
 async def create_user_if_not_exists(name: str, password: str, roles: list[Role]):
@@ -27,7 +20,6 @@ async def create_user_if_not_exists(name: str, password: str, roles: list[Role])
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    run_migrations()
     await create_user_if_not_exists("admin", "123", [Role.ADMIN])
     await create_user_if_not_exists("ilya", "qwe", [])
     await init_mqtt()
