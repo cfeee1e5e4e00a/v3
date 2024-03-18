@@ -1,21 +1,32 @@
 import { FC } from 'react';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 
-import { BaseLayout } from '@/shared/ui/layouts/BaseLayout';
+import { BaseLayout } from '@/shared/ui/BaseLayout';
+import { ProtectedRoute } from '@/entities/auth/ProtectedRoute';
 import { IndexPage } from '@/pages/IndexPage';
+import { SignInPage } from '@/pages/SignInPage';
+import { DashboardIndexPage } from '@/pages/dashboard/DashboardIndexPage';
 
 const router = createBrowserRouter([
     {
         path: '/',
-        element: <IndexPage />,
+        element: (
+            <ProtectedRoute redirectTo="/dashboard" inverse>
+                <IndexPage />
+            </ProtectedRoute>
+        ),
     },
     {
         path: '/dashboard',
-        element: <BaseLayout />,
+        element: (
+            <ProtectedRoute>
+                <BaseLayout />
+            </ProtectedRoute>
+        ),
         children: [
             {
                 index: true,
-                element: <main>Dashboard Home</main>,
+                element: <DashboardIndexPage />,
             },
             {
                 path: 'sensors',
@@ -24,8 +35,12 @@ const router = createBrowserRouter([
         ],
     },
     {
-        path: '/login',
-        element: <main>login</main>,
+        path: '/signin',
+        element: (
+            <ProtectedRoute redirectTo="/dashboard" inverse>
+                <SignInPage />
+            </ProtectedRoute>
+        ),
     },
 ]);
 
