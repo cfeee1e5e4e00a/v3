@@ -4,12 +4,8 @@ from fastapi import FastAPI
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.auth.routes import router as auth_router
-from src.api.routers import example_router, log_router
-from src.auth.core import get_user, create_user
-from src.mqtt import init_mqtt
-from src.mqtt.example import mqtt_example_router
-from src.schemas.user import Role
+from src.api import routers, mqtt, get_user, create_user
+from src.models.user import Role
 
 
 async def create_user_if_not_exists(name: str, password: str, roles: list[Role]):
@@ -21,10 +17,11 @@ async def create_user_if_not_exists(name: str, password: str, roles: list[Role])
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    await mqtt.mqtt_startup()
     await create_user_if_not_exists("admin", "123", [Role.ADMIN])
     await create_user_if_not_exists("ilya", "qwe", [])
-    await init_mqtt()
     yield
+    await mqtt.mqtt_shutdown()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -36,10 +33,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(log_router)
-app.include_router(auth_router)
-app.include_router(example_router)
-app.include_router(mqtt_example_router)
+for router in routers:
+    app.include_router(router)
 
 
 @app.get("/healthcheck")

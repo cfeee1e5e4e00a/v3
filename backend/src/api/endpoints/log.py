@@ -1,12 +1,13 @@
-from fastapi import Depends
+from fastapi import Depends, APIRouter
 
 from sqlalchemy import select, insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.schemas.log_entry import LogEntry
+from src.models.log_entry import LogEntry
 from src.core.db import get_db_session
 
-from src.api.routers import log_router as router
+
+router = APIRouter(prefix="/log", tags=["log", "logs"])
 
 
 @router.get("/")

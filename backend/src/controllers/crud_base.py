@@ -1,11 +1,10 @@
 from dataclasses import dataclass
-from typing import Any
-
-from fastapi.encoders import jsonable_encoder
-from sqlalchemy import select
+from sqlalchemy import any_
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from sqlalchemy.orm import DeclarativeBase
 from src.core.logger import logger
+from pydantic import BaseModel
+
 
 logger.debug("Init base CRUD")
 
@@ -14,48 +13,52 @@ logger.debug("Init base CRUD")
 class BaseCRUD:
     """Base CRUD class"""
 
-    model: Any  # Any SQLAlchemy model class
+    model: DeclarativeBase  # Any SQLAlchemy model class
 
     async def get(
         self,
         session: AsyncSession,
-        obj_id: int,
+        _id: int,
     ):
         """Get object by id"""
 
         logger.info("Get object from CRUDBase")
-        db_obj = await session.scalars(
-            select(self.model).where(self.model.id == obj_id)
+
+        db_obj = (
+            await session.querry(self.model)
+            .select(self.model)
+            .where(self.model.id == _id)
         )
+
+        db_obj = db_obj.scalars()
+
         logger.info("Get object from CRUDBase finished")
+
         return db_obj.first()
 
-    async def get_all(self, session: AsyncSession):
+    async def get_all(self, session: AsyncSession, *, _id: int | list[int] = tuple()):
         """Get all objects"""
 
-        db_objs = await session.execute(select(self.model))
-        return db_objs.scalars().all()
+        logger.info("Get all object from CRUDBase")
 
-    async def update(
-        self,
-        db_obj,
-        obj_in,
-        session: AsyncSession,
-    ):
-        """Update object"""
+        if isinstance(_id, int):
+            _filter = self.model.id == _id
+        else:
+            ids = _id
+            _filter = any_(*[self.model.id == _id for _id in ids])
 
-        logger.info("Update object from CRUDBase")
-        obj_data = jsonable_encoder(db_obj)
-        update_data = obj_in.dict(exclude_unset=True)
+        db_objs = await session.querry(self.model).select(self.model).where(_filter)
+        db_objs = db_objs.scalars()
 
-        for field in obj_data:
-            if field in update_data:
-                setattr(db_obj, field, update_data[field])
-        session.add(db_obj)
-        await session.commit()
-        await session.refresh(db_obj)
-        logger.info("Update object from CRUDBase finished")
-        return db_obj
+        logger.info("Get all objects from CRUDBase finished")
+
+        return db_objs.all()
+
+    async def insert(self, session: AsyncSession, data: list[BaseModel]):
+        data: list[dict] = [row.model_dump() for row in data]
+
+        session.querry(self.model).add(data)
+        session.commit()
 
 
 logger.debug("Finish init base CRUD")

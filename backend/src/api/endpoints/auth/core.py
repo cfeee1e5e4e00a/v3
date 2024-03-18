@@ -1,11 +1,18 @@
+from typing import Annotated
 from datetime import datetime, timedelta, timezone
-from jose import jwt
+from jose import jwt, JWTError
 from sqlalchemy import select
 from passlib.context import CryptContext
 
+from fastapi import Request, Depends, HTTPException, Security
+from fastapi.security.api_key import APIKeyHeader
+
 from src.core.db import async_session_factory
 from src.core.config import AuthSettings
-from src.schemas.user import Role, User
+from src.models.user import Role, User
+
+
+api_key_header = APIKeyHeader(name="Authorization")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -51,3 +58,41 @@ def create_access_token(data: dict) -> str:
         to_encode, AuthSettings.secret_key, algorithm=AuthSettings.algorithm
     )
     return encoded_jwt
+
+
+def get_current_user_wrapper(role: Role | None):
+    async def get_current_user(req: Request, token=Security(api_key_header)):
+        credentials_exception = HTTPException(
+            status_code=401,
+            detail="Could not validate credentials",
+        )
+
+        try:
+            payload = jwt.decode(
+                token, AuthSettings.secret_key, algorithms=[AuthSettings.algorithm]
+            )
+            username: str = payload.get("sub")
+
+            if username is None:
+                raise credentials_exception
+
+        except JWTError:
+            raise credentials_exception
+
+        user = await get_user(username)
+
+        if user is None:
+            raise credentials_exception
+
+        if role is not None and role not in user.roles:
+            raise HTTPException(
+                status_code=403, detail=f"You do not have required role: {role}"
+            )
+
+        return user
+
+    return get_current_user
+
+
+def current_user(role: Role | None = None) -> type[User]:
+    return Annotated[str | None, Depends(get_current_user_wrapper(role))]

@@ -42,3 +42,15 @@ class AuthSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_prefix="AUTH_", extra="ignore"
     )
+
+
+@lambda _: _()
+class MQTTSettings(BaseSettings):
+    host: str = "mqtt"
+    client_id: str = "backend"
+    username: str = "nti"
+    password: str = "nti"
+
+    model_config = SettingsConfigDict(
+        env_file=".env", env_prefix="MQTT_", extra="ignore"
+    )
