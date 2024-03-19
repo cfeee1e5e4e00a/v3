@@ -1,20 +1,16 @@
+#include <ACS712.h>
 #include <DHT.h>
 #include "EspMQTTClient.h"
 
 //номер еспшки
 #define CLIENT_ID "1"
+#define FLAT_NO_1 1
+#define FLAT_NO_2 2
 
-//квартира 1 реле 1
-#define REL_1 5
-//квартира 1 реле 2
-#define REL_2 18
-//квартира 2 реле 1
-#define REL_3 19
-//квартира 2 реле 2
-#define REL_4 21
+//кв. 1, реле 1; кв. 1, реле 2; кв. 2 реле 1; кв. 2, реле 1.
+int relay_pins[4] = {5, 18, 19, 21};
 
 #define PERIOD 5000
-
 
 #define DHT_1 27
 #define DHT_2 26
@@ -23,6 +19,8 @@
 
 DHT dht_1(DHT_1, DHT11);
 DHT dht_2(DHT_2, DHT11);
+ACS712  acs1(CURR_1, 3.3, 4095, 100);
+ACS712  acs2(CURR_2, 3.3, 4095, 100);
 
 const char* ssid = "TP-Link_4F90";
 const char* password =  "NTOContest202324";
@@ -37,23 +35,25 @@ EspMQTTClient client(
   mqttServer,  // MQTT Broker server ip
   "nti",   // Can be omitted if not needed
   "nti",   // Can be omitted if not needed
-  "1",     // Client name that uniquely identify your device
+  CLIENT_ID,     // Client name that uniquely identify your device
   mqttPort              // The MQTT port, default to 1883. this line can be omitted
 );
 
-
 void onConnectionEstablished() {
-    
+    client.publish("/init", String("privet ya esp ") + String(CLIENT_ID));
 }
-
 
 void setup()
 {
     //digital
-	pinMode(REL_1, OUTPUT);
-    pinMode(REL_2, OUTPUT);
-    pinMode(REL_3, OUTPUT);
-    pinMode(REL_4, OUTPUT);
+    for (int i = 0; i < 4; i++){
+        pinMode(relay_pins[i], OUTPUT);
+        digitalWrite(relay_pins[i], 1);
+    }
+    delay(100);
+
+    acs1.autoMidPointDC();
+    acs2.autoMidPointDC();
 
     pinMode(DHT_1, INPUT);
     pinMode(DHT_2, INPUT);
@@ -67,52 +67,6 @@ void setup()
 }
 
 unsigned long last_publish = 0;
-String temp1 = "";
-String temp2 = "";
-
-/*String get_dht_temp(DHT dht) {
-    switch(dht.getState()) {
-    // всё OK
-    case DHT_OK:
-      // выводим показания влажности и температуры
-      return(String(dht.getTemperatureC()));
-    // ошибка контрольной суммы
-    case DHT_ERROR_CHECKSUM:
-      return(String("Checksum error"));
-    // превышение времени ожидания
-    case DHT_ERROR_TIMEOUT:
-      return(String("Time out error"));
-    // данных нет, датчик не реагирует или отсутствует
-    case DHT_ERROR_NO_REPLY:
-      return(String("Sensor not connected"));
-  }
-}
-*/
-
-/*String get_dht_humidity(DHT dht) {
-    switch(dht.getState()) {
-    // всё OK
-    case DHT_OK:
-      // выводим показания влажности и температуры
-      return(String(dht.getHumidity()));
-    // ошибка контрольной суммы
-    case DHT_ERROR_CHECKSUM:
-      return(String("Checksum error"));
-    // превышение времени ожидания
-    case DHT_ERROR_TIMEOUT:
-      return(String("Time out error"));
-    // данных нет, датчик не реагирует или отсутствует
-    case DHT_ERROR_NO_REPLY:
-      return(String("Sensor not connected"));
-  }
-}
-*/
-
-String get_current(int pin) {
-    int i = analogRead(pin);
-    //TODO: formula
-    return String(i);
-}
 
 void loop()
 {
@@ -124,20 +78,19 @@ void loop()
     if(m - last_publish > PERIOD){
         last_publish = m;
         //temp 1
-        client.publish("/sensors", String("temp,flat=1 value=") + dht_1.readTemperature());
-        //client.publish("/sensors", String("temp,flat=1 value=") + dht_1.getTemperatureC());
+        client.publish("/sensors", String("temp,flat=" + FLAT_NO_1 + String(" value=")) + dht_1.readTemperature());
         //temp 2
-        client.publish("/sensors", String("temp,flat=2 value=") + dht_2.readTemperature());
+        client.publish("/sensors", String("temp,flat=" + FLAT_NO_2 + String(" value=")) + dht_2.readTemperature());
         // humidity 1
-        client.publish("/sensors", String("humd,flat=1 value=") + dht_1.readHumidity());
+        client.publish("/sensors", String("humd,flat=" + FLAT_NO_1 + String(" value=")) + dht_1.readHumidity());
         // humidity 2
-        client.publish("/sensors", String("humd,flat=2 value=") + dht_2.readHumidity()); 
+        client.publish("/sensors", String("humd,flat=" + FLAT_NO_2 + String(" value=")) + dht_2.readHumidity()); 
         // CURR 1
-        client.publish("/sensors", String("curr,flat=1 value=") + get_current(CURR_1));
+        client.publish("/sensors", String("curr,flat=" + FLAT_NO_1 + String(" value=")) + acs1.mA_DC()/1000.0);
         // CURR 2
-        client.publish("/sensors", String("curr,flat=2 value=") + get_current(CURR_2));
+        client.publish("/sensors", String("curr,flat=" + FLAT_NO_2 + String(" value=")) + acs2.mA_DC()/1000.0);
     }
 
     //RELAY ALGO
-    //----------
+    
 }
