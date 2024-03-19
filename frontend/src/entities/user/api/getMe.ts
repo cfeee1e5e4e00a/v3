@@ -1,16 +1,21 @@
 import ky from 'ky';
 
 import { User } from '@/entities/user/User';
-import { NotAuthenticatedError, authToken } from '@/entities/auth';
+import {
+    readAuthTokenFromLocalStorage,
+    NotAuthenticatedError,
+} from '@/entities/auth';
 
 export async function getMe(): Promise<User> {
-    if (!authToken.value) {
+    const authToken = readAuthTokenFromLocalStorage();
+
+    if (!authToken) {
         throw new NotAuthenticatedError();
     }
 
     const res = await ky.get('http://diarrhea.cfeee1e5e4e00a.ru:8000/auth/me', {
         headers: {
-            Authorization: authToken.value,
+            Authorization: authToken,
         },
     });
 

@@ -66,7 +66,7 @@ export const SignInForm: FC = () => {
             <button
                 disabled={disableSubmit}
                 type="submit"
-                className="btn btn-accent w-full text-lg"
+                className="btn btn-primary w-full text-lg"
             >
                 Войти
             </button>
