@@ -19,6 +19,18 @@
 -   Пользователь: `nti`
 -   Пароль: `nti`
 
+#### Топики
+
+-   `/sensors` - Формат данных [InfluxDB Line Protocol](https://docs.influxdata.com/influxdb/v2/reference/syntax/line-protocol/). Важно НЕ ставить символ переноса строки в конце данных при отправке по MQTT.
+
+    -   Для температуры: `temp,flat=<номер_квартиры> value=<температура>`
+    -   Для температуры на улице: `outside_temp value=<температура>`
+    -   Для влажности: `humd,flat=<номер_квартиры> value=<влажность>`
+    -   Для тока потребления: `curr,flat=<номер_квартиры> value=<энергия>`
+    -   Для состояний реле: `relay,flat=<номер_квартиры>,dc=<номер_блока_питания> value=<true | false>`
+
+-   TODO: init topics
+
 ### PostgresSQL
 
 -   Адрес: `diarrhea.cfeee1e5e4e00a.ru:5432` (WIP)
@@ -69,21 +81,21 @@ brew install colima
 ```yaml
 mountType: 9p
 mounts:
-- location: "/Users/<username>"
-  writable: true
-  9p:
-    securityModel: mapped-xattr
-    cache: mmap
-- location: "~"
-  writable: true
-  9p:
-    securityModel: mapped-xattr
-    cache: mmap
-- location: "/tmp/colima"
-  writable: true
-  9p:
-    securityModel: mapped-xattr
-    cache: mmap
+    - location: "/Users/<username>"
+      writable: true
+      9p:
+          securityModel: mapped-xattr
+          cache: mmap
+    - location: "~"
+      writable: true
+      9p:
+          securityModel: mapped-xattr
+          cache: mmap
+    - location: "/tmp/colima"
+      writable: true
+      9p:
+          securityModel: mapped-xattr
+          cache: mmap
 ```
 
 2. `colima delete`
