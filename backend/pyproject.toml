@@ -22,6 +22,7 @@ passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 gmqtt = "^0.6.14"
 alembic = "^1.13.1"
 fastapi-mqtt = "^2.1.1"
+influxdb-client = "^1.41.0"
 
 
 [build-system]
