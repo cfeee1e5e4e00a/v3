@@ -1,10 +1,13 @@
 import { FC } from 'react';
-import useSWR from 'swr';
 
-import { getMe } from '@/entities/user/api/getMe';
+import { useUser } from '@/entities/user/useUser';
 
 export const DashboardIndexPage: FC = () => {
-    const me = useSWR('/api/me', () => getMe());
+    const me = useUser();
 
-    return <main>{me.data && JSON.stringify(me.data)}</main>;
+    return (
+        <main className="h-full w-full">
+            {me.data && JSON.stringify(me.data)}
+        </main>
+    );
 };

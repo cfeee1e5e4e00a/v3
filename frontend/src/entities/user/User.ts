@@ -1,8 +1,10 @@
 export enum Role {
-    ADMIN,
+    USER = 'USER',
+    ADMIN = 'ADMIN',
 }
 
 export type User = {
-    username: string;
-    roles: Array<Role>;
+    id: number;
+    name: string;
+    role: Role;
 };

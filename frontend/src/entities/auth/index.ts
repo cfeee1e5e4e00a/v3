@@ -1,4 +1,4 @@
-import { computed, signal } from '@preact/signals-react';
+import useSWR from 'swr';
 
 import { LoginParams, login } from '@/entities/auth/api/login';
 
@@ -16,21 +16,23 @@ export class NotAuthorizedError extends Error {
     }
 }
 
-function readStateFromLocalStorage() {
+export type AuthToken = string;
+
+export function readAuthTokenFromLocalStorage(): AuthToken | null {
     return window.localStorage.getItem('auth-token');
 }
 
-export const authToken = signal<string | null>(readStateFromLocalStorage());
-
-export const isLoggedIn = computed(() => authToken.value !== null);
+export function useAuthToken() {
+    return useSWR('localStorage://auth-token', () =>
+        readAuthTokenFromLocalStorage(),
+    );
+}
 
 export async function signIn(params: LoginParams): Promise<void> {
     const token = await login(params);
-    authToken.value = token;
     window.localStorage.setItem('auth-token', token);
 }
 
 export function logout(): void {
-    authToken.value = null;
     window.localStorage.removeItem('auth-token');
 }
