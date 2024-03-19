@@ -25,10 +25,10 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-async def create_user(name: str, password: str, roles: list[Role]):
+async def create_user(name: str, password: str, role: Role):
     async with async_session_factory() as session:
         session.add(
-            User(name=name, password_hash=get_password_hash(password), roles=roles)
+            User(name=name, password_hash=get_password_hash(password), role=role)
         )
         await session.commit()
 
@@ -60,12 +60,14 @@ def create_access_token(data: dict) -> str:
     return encoded_jwt
 
 
+CredentialsError = HTTPException(
+    status_code=401,
+    detail="Could not validate credentials",
+)
+
+
 def get_current_user_wrapper(role: Role | None):
     async def get_current_user(req: Request, token=Security(api_key_header)):
-        credentials_exception = HTTPException(
-            status_code=401,
-            detail="Could not validate credentials",
-        )
 
         try:
             payload = jwt.decode(
@@ -74,19 +76,20 @@ def get_current_user_wrapper(role: Role | None):
             username: str = payload.get("sub")
 
             if username is None:
-                raise credentials_exception
+                raise CredentialsError
 
         except JWTError:
-            raise credentials_exception
+            raise CredentialsError
 
         user = await get_user(username)
 
         if user is None:
-            raise credentials_exception
+            raise CredentialsError
 
-        if role is not None and role not in user.roles:
+        if role is not None and user.role < role:
             raise HTTPException(
-                status_code=403, detail=f"You do not have required role: {role}"
+                status_code=403,
+                detail=f"Вы должны обладать как минимум ролью `{role.name}`",
             )
 
         return user

@@ -18,8 +18,8 @@ async def create_user_if_not_exists(name: str, password: str, roles: list[Role])
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await mqtt.mqtt_startup()
-    await create_user_if_not_exists("admin", "123", [Role.ADMIN])
-    await create_user_if_not_exists("ilya", "qwe", [])
+    await create_user_if_not_exists("admin", "123", Role.ADMIN)
+    await create_user_if_not_exists("ilya", "qwe", Role.USER)
     yield
     await mqtt.mqtt_shutdown()
 

@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException
 
 from src.models.user import Role
 from src.api.endpoints.auth.core import auth_user, create_access_token, current_user
-from src.schemas.login import LoginRequest
+from src.schemas.auth import LoginRequest, UserResponse
 
 router = APIRouter(prefix="/auth")
 
@@ -24,8 +24,8 @@ async def admin_ep(
     return f"Hello, admin: {user.name=}"
 
 
-@router.get("/me")
+@router.get("/me", response_model=UserResponse)
 async def get_me(
     user: current_user(),  # type: ignore
 ):
-    return f"Hello, {user.name}, your roles are {user.roles}"
+    return user

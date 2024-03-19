@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 
 from src.core.db import PostgresBase
+from src.models import *
 
 load_dotenv(".env")
 
