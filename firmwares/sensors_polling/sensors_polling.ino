@@ -4,8 +4,8 @@
 
 //номер еспшки
 #define CLIENT_ID "1"
-#define FLAT_NO_1 1
-#define FLAT_NO_2 2
+#define FLAT_NO_1 "1"
+#define FLAT_NO_2 "2"
 
 //кв. 1, реле 1; кв. 1, реле 2; кв. 2 реле 1; кв. 2, реле 1.
 int relay_pins[4] = {5, 18, 19, 21};
@@ -78,17 +78,17 @@ void loop()
     if(m - last_publish > PERIOD){
         last_publish = m;
         //temp 1
-        client.publish("/sensors", String("temp,flat=" + FLAT_NO_1 + String(" value=")) + dht_1.readTemperature());
+        client.publish("/sensors", String("temp,flat=" + String(FLAT_NO_1) + String(" value=")) + dht_1.readTemperature());
         //temp 2
-        client.publish("/sensors", String("temp,flat=" + FLAT_NO_2 + String(" value=")) + dht_2.readTemperature());
+        client.publish("/sensors", String("temp,flat=" + String(FLAT_NO_2) + String(" value=")) + dht_2.readTemperature());
         // humidity 1
-        client.publish("/sensors", String("humd,flat=" + FLAT_NO_1 + String(" value=")) + dht_1.readHumidity());
+        client.publish("/sensors", String("humd,flat=" + String(FLAT_NO_1) + String(" value=")) + dht_1.readHumidity());
         // humidity 2
-        client.publish("/sensors", String("humd,flat=" + FLAT_NO_2 + String(" value=")) + dht_2.readHumidity()); 
+        client.publish("/sensors", String("humd,flat=" + String(FLAT_NO_2) + String(" value=")) + dht_2.readHumidity()); 
         // CURR 1
-        client.publish("/sensors", String("curr,flat=" + FLAT_NO_1 + String(" value=")) + acs1.mA_DC()/1000.0);
+        client.publish("/sensors", String("curr,flat=" + String(FLAT_NO_1) + String(" value=")) + acs1.mA_DC()/1000.0);
         // CURR 2
-        client.publish("/sensors", String("curr,flat=" + FLAT_NO_2 + String(" value=")) + acs2.mA_DC()/1000.0);
+        client.publish("/sensors", String("curr,flat=" + String(FLAT_NO_2) + String(" value=")) + acs2.mA_DC()/1000.0);
     }
 
     //RELAY ALGO
