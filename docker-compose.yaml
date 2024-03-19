@@ -37,6 +37,13 @@ services:
       - DB_URI=postgresql+asyncpg://nti:nti@db:5432/nti
       - AUTH_SECRET_KEY=932b25ed0d90729416ba383e384567a356b2870f302fb5d04b89dc364f4ccfd6
       - AUTH_ALGORITHM=HS256
+      - MQTT_HOST=mqtt
+      - MQTT_CLIENT=py_back
+      - MQTT_USERNAME=nti
+      - MQTT_PASSWORD=nti
+      - INFLUX_URL=http://influx.cfeee1e5e4e00a.ru:8086/
+      - INFLUX_TOKEN=oGxyaChur5XTvoGRBE3FKJMtGSFxQ--GEZtUqmDhr18cMNDcBEMAQNPgtGimgUvvZMyrGrv58IXUj0D-eDO1ZQ==
+      - INFLUX_ORG=cfeee1e5e4e00a
 
   mqtt:
     image: "emqx/nanomq:0.21.6"
