@@ -15,6 +15,7 @@ import { SignInPage } from '@/pages/SignInPage';
 import { DashboardIndexPage } from '@/pages/dashboard/DashboardIndexPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { ForbiddenPage } from '@/pages/ForbiddenPage';
+import { DashboardMyFlatPage } from '@/pages/dashboard/DashboardMyFlatPage';
 
 const router = createBrowserRouter([
     {
@@ -47,7 +48,7 @@ const router = createBrowserRouter([
                 children: [
                     {
                         path: 'flat',
-                        element: <main>My flat</main>,
+                        element: <DashboardMyFlatPage />,
                     },
                     {
                         path: 'bills',
@@ -56,7 +57,7 @@ const router = createBrowserRouter([
                 ],
             },
             {
-                path: 'users',
+                path: 'admin',
                 element: (
                     <RoleProtectedRoute roles={[Role.ADMIN]}>
                         <Outlet />
@@ -64,22 +65,28 @@ const router = createBrowserRouter([
                 ),
                 children: [
                     {
-                        index: true,
-                        element: <main>users list</main>,
+                        path: 'users',
+                        element: <Outlet />,
+                        children: [
+                            {
+                                index: true,
+                                element: <main>users list</main>,
+                            },
+                            {
+                                path: ':user',
+                                element: <main>users list</main>,
+                            },
+                        ],
                     },
                     {
-                        path: ':user',
-                        element: <main>users list</main>,
+                        path: 'house',
+                        element: (
+                            <RoleProtectedRoute roles={[Role.ADMIN]}>
+                                a
+                            </RoleProtectedRoute>
+                        ),
                     },
                 ],
-            },
-            {
-                path: 'house',
-                element: (
-                    <RoleProtectedRoute roles={[Role.ADMIN]}>
-                        a
-                    </RoleProtectedRoute>
-                ),
             },
         ],
     },
