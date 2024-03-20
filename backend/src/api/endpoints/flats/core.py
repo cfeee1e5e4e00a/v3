@@ -16,6 +16,7 @@ async def get_measurement_data(
     start: str,
     stop: str,
     window: str,
+    tz: str,
     user: current_user(),  # type: ignore
     query_api: QueryApi = Depends(get_influx_query),
 ):
@@ -36,8 +37,10 @@ async def get_measurement_data(
 
     tables = query_api.query(query)
 
+    mapper = SensorData[float].from_flux_record(tz)
+
     return map(
-        SensorData[float].from_flux_record,
+        mapper,
         filter(
             lambda x: x.get_value() is not None,
             chain.from_iterable(table.records for table in tables),
