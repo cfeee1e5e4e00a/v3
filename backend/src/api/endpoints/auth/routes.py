@@ -1,8 +1,16 @@
 from fastapi import APIRouter, HTTPException
+from sqlalchemy import select
 
 from src.models.user import Role
-from src.api.endpoints.auth.core import auth_user, create_access_token, current_user, create_user
+from src.models.bill import Bill
+from src.api.endpoints.auth.core import (
+    auth_user,
+    create_access_token,
+    current_user,
+    create_user,
+)
 from src.schemas.auth import LoginRequest, UserResponse
+from src.core.db import async_session_factory
 
 router = APIRouter(prefix="/auth")
 
@@ -27,13 +35,14 @@ async def admin_ep(
 async def get_me(
     user: current_user(),  # type: ignore
 ):
+
     return user
 
 
-@router.post('/signup')
+@router.post("/signup")
 async def sign_up(name: str, password: str, role: str):
-    if role == 'admin':
+    if role == "admin":
         await create_user(name=name, password=password, role=Role.ADMIN)
-    elif role == 'user':
+    elif role == "user":
         await create_user(name=name, password=password, role=Role.USER)
     return 1

@@ -26,6 +26,7 @@ class User(PostgresBase):
     password_hash: str
     role: Enum(ADMIN, USER)
     """
+
     # TODO: add stage
     __tablename__ = "users"
 

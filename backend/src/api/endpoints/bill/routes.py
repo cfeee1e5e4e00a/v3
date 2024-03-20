@@ -10,13 +10,32 @@ from src.api.endpoints.bill.core import create_bill, Status
 router = APIRouter(prefix="/bill")
 
 
-@router.get('/{id}')
-async def get_bill():
+# TODO: Выставить новый счёт юзеру
+@router.post("/")
+async def add_bill(amount: float, user_id: int):  # type: ignore
+    await create_bill(amount=amount, status=Status.UNPAID, user_id=user_id)
+    return
+
+
+# TODO: Получить инфу о счёте
+@router.get("/{bill_id}")
+async def get_bill_by_id(bill_id: int):
     pass
 
 
-@router.post("/")
-async def add_bill(amount: float, status: Status, user_id: int, user: current_user()):
-    await create_bill(amount=amount, status=status, user_id=user_id)
-    return
+# TODO: Скачать pdf-отчёт
+@router.get("/{bill_id}/report")
+async def get_bill_report(bill_id: int):
+    pass
 
+
+# TODO: Получить счёта пользователя
+@router.get("/users/{user_id}")
+async def get_user_bill(user_id: int):
+    pass
+
+
+# TODO: "Оплатить" счёт
+@router.post("/{bill_id}/pay")
+async def pay_for_bill(bill_id: int):
+    pass
