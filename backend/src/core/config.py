@@ -27,10 +27,21 @@ class AppSettings(BaseSettings):
 
 
 @lambda _: _()
-class DBSettings(BaseSettings):
+class PostgresSettings(BaseSettings):
     uri: str
 
-    model_config = SettingsConfigDict(env_file=".env", env_prefix="DB_", extra="ignore")
+    model_config = SettingsConfigDict(env_file=".env", env_prefix="PG_", extra="ignore")
+
+
+@lambda _: _()
+class InfluxSettings(BaseSettings):
+    url: str
+    token: str
+    org: str
+
+    model_config = SettingsConfigDict(
+        env_file=".env", env_prefix="INFLUX_", extra="ignore"
+    )
 
 
 @lambda _: _()

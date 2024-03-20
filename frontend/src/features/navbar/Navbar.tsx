@@ -22,13 +22,13 @@ const items = [
     {
         displayName: 'Пользователи',
         icon: <UserIcon />,
-        to: '/dashboard/users',
+        to: '/dashboard/admin/users',
         roles: [Role.ADMIN],
     },
     {
         displayName: 'Счёта',
         icon: <HomeIcon />,
-        to: '/house',
+        to: '/dashboard/admin/house',
         roles: [Role.ADMIN],
     },
 ];
@@ -46,15 +46,15 @@ export const Navbar: FC = () => {
     );
 
     return (
-        <nav className="bg-accent text-accent-content flex h-full flex-col items-center justify-between p-8">
+        <nav className="bg-accent text-accent-content flex h-full flex-col items-center justify-between gap-8 p-8">
+            <Link to="/dashboard" className="text-2xl">
+                cfee
+            </Link>
             {user.data?.role && (
                 <ul className="flex flex-col items-center gap-4">
                     {owned.map(({ displayName, icon, to }) => (
-                        <Link to={to}>
-                            <li
-                                className="flex flex-col items-center gap-2 text-center"
-                                key={to}
-                            >
+                        <Link to={to} key={to}>
+                            <li className="flex flex-col items-center gap-2 text-center">
                                 <span className="h-8 w-8">{icon}</span>
                                 <span>{displayName}</span>
                             </li>
