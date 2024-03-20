@@ -15,15 +15,36 @@ class Config:
 
 
 config_1 = Config(
-    "First",
+    "FLATCON1",
     room_ids=[1, 2],
-    dht_pins=[27, 26],
-    acs_pins=[35, 34],
-    relay_pins=[5, 18, 19, 21],
+    dht_pins=[25, 26],
+    acs_pins=[34, 35],
+    relay_pins=[21, 19, 18, 5],
     send_external_temp=False,
     external_dht_pin=99,
 )
 
+config_2 = Config(
+    "FLATCON2",
+    room_ids=[3, 4],
+    dht_pins=[25, 26],
+    acs_pins=[34, 35],
+    relay_pins=[21, 19, 18, 5],
+    send_external_temp=False,
+    external_dht_pin=99,
+)
+
+config_3 = Config(
+    "FLATCON3",
+    room_ids=[5, 6],
+    dht_pins=[25, 26],
+    acs_pins=[34, 35],
+    relay_pins=[21, 19, 18, 5],
+    send_external_temp=False,
+    external_dht_pin=99,
+)
+
+configs = [config_1, config_2, config_3]
 
 def config_to_bytes(c: Config) -> bytes:
     ret = struct.pack('<16sbb', c.client_id.encode(), c.send_external_temp, c.external_dht_pin)
@@ -41,4 +62,11 @@ def upload_config(c: Config):
 
 
 if __name__ == '__main__':
-    upload_config(config_1)
+    import sys
+    cn = int(sys.argv[1])  -1
+    cfg = configs[cn]
+    print(f'Config:', cfg)
+    if input('Upload?')[0] != 'y':
+        exit(0)
+    print('Uploading')
+    upload_config(cfg)

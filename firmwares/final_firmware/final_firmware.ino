@@ -21,20 +21,24 @@ const char* mqttPassword = "nti";
 
 
 
+EspMQTTClient* client;
 
-EspMQTTClient client;
-
-DHT dhts[N_ROOMS];
-ACS712 acss[N_ROOMS];
-GyverPID pids[2];
+DHT *dhts;
+ACS712 *acss;
+GyverPID *pids;
 
 
 
 void setup()
 {
+
+    dhts = (DHT*)malloc(N_ROOMS * sizeof(DHT));
+    acss = (ACS712*)malloc(N_ROOMS * sizeof(ACS712));
+    pids = (GyverPID*)malloc(N_ROOMS * sizeof(GyverPID));
+
     Serial.begin(115200);
     load_config();
-    client = EspMQTTClient(
+    client = new EspMQTTClient(
         ssid,
         password,
         mqttServer,  // MQTT Broker server ip
@@ -44,15 +48,17 @@ void setup()
         mqttPort              // The MQTT port, default to 1883. this line can be omitted
     );
 
-    client.enableLastWillMessage("/init", (String("power,esp=") + config.client_id + " value=0").c_str());
+    client->enableLastWillMessage("/init", strdup((String("power,esp=") + config.client_id + " value=0").c_str()));
+    client->enableDebuggingMessages(true);
+    // return;
 
     for(int i = 0; i < N_ROOMS; i++){
         // setup dhts
-        dhts[i] = DHT(config.rooms[i].dht_pin, DHT11);
+        new(&dhts[i]) DHT(config.rooms[i].dht_pin, DHT11);
         dhts[i].begin();
 
         // setup pids
-        pids[i] = GyverPID(0.1, 0.05, 0.01, CALIBRATION_PERIOD);
+        new(&pids[i]) GyverPID(0.1, 0.05, 0.01, CALIBRATION_PERIOD);
         pids[i].setDirection(NORMAL);
         pids[i].setLimits(0, 1000);
 
@@ -65,7 +71,7 @@ void setup()
         delay(100);
 
         // setup current sensors
-        acss[i] = ACS712(config.rooms[i].acs_pin, 3.3, 4095, 100);
+        new(&acss[i]) ACS712(config.rooms[i].acs_pin, 3.3, 4095, 100);
         acss[i].autoMidPointDC();
     }
 
@@ -73,7 +79,15 @@ void setup()
 }
 
 void onConnectionEstablished() {
-    client.publish("/init", String("power,esp=") + config.client_id + " value=1");
+    Serial.println("Connected to mqtt");
+    client->publish("/init", String("power,esp=") + config.client_id + " value=1");
+    for(int i = 0; i < N_ROOMS; i++){
+        client->subscribe(String("/relays/")+config.rooms[i].id, [=](String msg){
+            for(int r  =0; r < N_RELAYS; r++){
+                digitalWrite(config.rooms[i].relay_pins[r], msg[r] - '0' ? R_ON : R_OFF);
+            }
+        });
+    }
 }
 
 volatile float room_temps[N_ROOMS];
@@ -83,12 +97,13 @@ unsigned long last_publish = 0;
 
 
 void publish_measurement(String name, int flat, float value){
-    client.publish("/sensors", name+",flat="+config.rooms[flat].id+" value="+value);
+    client->publish("/sensors", name+",flat="+config.rooms[flat].id+" value="+value);
 }
 
 void loop(){    
-    client.loop();
+    client->loop();
 
+    // return;
     unsigned long m = millis();
     if (m - last_publish < MEASUREMENT_PERIOD){
         return;
