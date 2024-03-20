@@ -1,7 +1,7 @@
 import { FC, ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 
-import { useAuthToken } from '@/entities/auth';
+import { useAuthToken } from '@/features/auth';
 
 type Props = {
     children: ReactNode;

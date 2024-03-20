@@ -1,14 +1,19 @@
-import { FC } from 'react';
+import { MeasurementsData } from '@/features/measurements/Measurement';
 import { Line } from 'react-chartjs-2';
 
-const data = [];
+type Props<T> = {
+    data?: MeasurementsData<T>;
+    label?: string;
+    title?: string;
+};
 
-export const DisplayGraphic: FC = () => {
+export const MeasurementDisplay = <T,>({ data, label, title }: Props<T>) => {
     return (
         <div className="flex items-center justify-center rounded-xl bg-white p-4">
+            {!data && <p>loading</p>}
             <Line
                 data={{
-                    datasets: [{ data, label: 'Температура в C' }],
+                    datasets: [{ data, label }],
                 }}
                 options={{
                     responsive: true,
@@ -16,17 +21,12 @@ export const DisplayGraphic: FC = () => {
                         legend: { position: 'bottom' },
                         title: {
                             display: true,
-                            text: 'Температура в квартире',
+                            text: title,
                         },
                     },
                     parsing: {
                         xAxisKey: 'timestamp',
                         yAxisKey: 'value',
-                    },
-                    scales: {
-                        x: {
-                            type: 'linear',
-                        },
                     },
                 }}
             />

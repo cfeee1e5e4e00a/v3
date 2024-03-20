@@ -1,8 +1,8 @@
 import { FC, ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 
-import { Role } from '@/entities/user/User';
-import { useUser } from '@/entities/user/useUser';
+import { Role } from '@/features/user/User';
+import { useUser } from '@/features/user/useUser';
 
 type Props = {
     children: ReactNode;

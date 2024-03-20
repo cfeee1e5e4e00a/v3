@@ -1,8 +1,8 @@
 import { FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useLogoutMutation } from '@/features/logout/useLogoutMutation';
-import { User } from '@/entities/user/User';
+import { useLogoutMutation } from '@/features/auth/useLogoutMutation';
+import { User } from '@/features/user/User';
 
 type Props = {
     user: User;
