@@ -25,10 +25,15 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-async def create_user(name: str, password: str, role: Role):
+async def create_user(name: str, password: str, role: Role, flat: int):
     async with async_session_factory() as session:
         session.add(
-            User(name=name, password_hash=get_password_hash(password), role=role)
+            User(
+                name=name,
+                password_hash=get_password_hash(password),
+                role=role,
+                flat=flat,
+            )
         )
         await session.commit()
 

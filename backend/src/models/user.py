@@ -8,12 +8,13 @@ from src.core.db import PostgresBase
 
 
 class Role(Enum):
-    USER = "USER"
+    USER_FLOOR_1 = "USER_FLOOR_1"
+    USER_FLOOR_2 = "USER_FLOOR_2"
     ADMIN = "ADMIN"
 
     def __lt__(self, other: "Role") -> bool:
         match (self, other):
-            case (Role.USER, Role.ADMIN):
+            case (Role.ADMIN, Role.USER_FLOOR_1, Role.USER_FLOOR_2):
                 return True
             case _:
                 return False
@@ -24,7 +25,9 @@ class User(PostgresBase):
     id: int
     name: str
     password_hash: str
-    role: Enum(ADMIN, USER)
+    flat: int
+    role: Enum(ADMIN, USER_FLOOR_1, USER_FLOOR_2)
+    bills: Bill[]
     """
 
     # TODO: add stage
@@ -34,4 +37,5 @@ class User(PostgresBase):
     name = Column(String, nullable=False)
     password_hash = Column(String, nullable=False)
     role = Column(PgEnum(Role, create_type=True), nullable=False)
+    flat = Column(Integer, nullable=False)
     bills = relationship("Bill", back_populates="user")
