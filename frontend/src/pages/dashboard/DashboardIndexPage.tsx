@@ -1,6 +1,6 @@
 import { FC } from 'react';
 
-import { useUser } from '@/entities/user/useUser';
+import { useUser } from '@/features/user/useUser';
 
 export const DashboardIndexPage: FC = () => {
     const me = useUser();

@@ -1,8 +1,8 @@
 import { mutate } from 'swr';
 import useSWRMutation from 'swr/mutation';
 
-import { LoginParams } from '@/entities/auth/api/login';
-import { signIn } from '@/entities/auth';
+import { LoginParams } from '@/features/auth/api/login';
+import { signIn } from '@/features/auth';
 
 export function useSignInMutation() {
     return useSWRMutation(

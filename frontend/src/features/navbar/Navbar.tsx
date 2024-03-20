@@ -1,9 +1,9 @@
 import { FC, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
-import { Role } from '@/entities/user/User';
-import { UserShortInfo } from '@/entities/user/UserShortInfo';
-import { useUser } from '@/entities/user/useUser';
+import { Role } from '@/features/user/User';
+import { UserShortInfo } from '@/features/user/UserShortInfo';
+import { useUser } from '@/features/user/useUser';
 import { HomeIcon, BanknotesIcon, UserIcon } from '@heroicons/react/24/outline';
 
 const items = [

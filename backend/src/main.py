@@ -8,18 +8,30 @@ from src.api import routers, mqtt, get_user, create_user
 from src.models.user import Role
 
 
-async def create_user_if_not_exists(name: str, password: str, roles: list[Role]):
+async def create_admin_if_not_exists(name: str, password: str):
     user = await get_user(name)
     if user is None:
         print(f"Creating user {name}")
-        await create_user(name, password, roles)
+        await create_user(name, password, Role.ADMIN, 0)
+
+
+async def create_user_if_not_exists(name: str, password: str, role: Role, flat):
+    user = await get_user(name)
+    if user is None:
+        print(f"Creating user {name}")
+        await create_user(name, password, role, flat)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await mqtt.mqtt_startup()
-    await create_user_if_not_exists("admin", "123", Role.ADMIN)
-    await create_user_if_not_exists("ilya", "qwe", Role.USER)
+    await create_admin_if_not_exists("admin", "123")
+    await create_user_if_not_exists("user1", "123", Role.USER_FLOOR_2, 1)
+    await create_user_if_not_exists("user2", "123", Role.USER_FLOOR_2, 2)
+    await create_user_if_not_exists("user3", "123", Role.USER_FLOOR_2, 3)
+    await create_user_if_not_exists("user4", "123", Role.USER_FLOOR_1, 4)
+    await create_user_if_not_exists("user5", "123", Role.USER_FLOOR_1, 5)
+    await create_user_if_not_exists("user6", "123", Role.USER_FLOOR_1, 6)
     yield
     await mqtt.mqtt_shutdown()
 

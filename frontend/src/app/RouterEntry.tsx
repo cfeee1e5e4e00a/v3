@@ -7,9 +7,9 @@ import {
 } from 'react-router-dom';
 
 import { DashboardLayout } from '@/features/navbar/DashboardLayout';
-import { AuthProtectedRoute } from '@/entities/auth/AuthProtectedRoute';
-import { RoleProtectedRoute } from '@/entities/auth/RoleProtectedRoute';
-import { Role } from '@/entities/user/User';
+import { AuthProtectedRoute } from '@/features/auth/AuthProtectedRoute';
+import { RoleProtectedRoute } from '@/features/auth/RoleProtectedRoute';
+import { Role } from '@/features/user/User';
 import { IndexPage } from '@/pages/IndexPage';
 import { SignInPage } from '@/pages/SignInPage';
 import { DashboardIndexPage } from '@/pages/dashboard/DashboardIndexPage';

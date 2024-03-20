@@ -1,6 +1,6 @@
 import useSWR from 'swr';
 
-import { LoginParams, login } from '@/entities/auth/api/login';
+import { LoginParams, login } from '@/features/auth/api/login';
 
 export class NotAuthenticatedError extends Error {
     constructor() {

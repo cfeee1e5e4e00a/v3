@@ -29,7 +29,29 @@
     -   Для тока потребления: `curr,flat=<номер_квартиры> value=<энергия>`
     -   Для состояний реле: `relay,flat=<номер_квартиры>,dc=<номер_блока_питания> value=<true | false>`
 
--   TODO: init topics
+-   `/mode/<номер квартиры>` - Топик для задания режима работы.
+    Формат данных:
+
+    ```typescript
+    enum Mode = {
+        TARGET = 0,
+        TARGET_ECONOMY = 1,
+        BY_PROFILE = 2,
+        OFF = 3,
+    };
+
+    type TargetPayload = number /* target temperature */;
+    type TargetEconomyPayload = number /* target temperature in economy mode */;
+    type ByProfilePayload = `${number/* target temperature */} ${number /* estimated time in seconds */}`;
+    type OffPayload = void;
+
+    type Payload = TargetPayload | TargetEconomyPayload | ByProfilePayload | OffPayload;
+
+    type Message = `${Mode} ${Payload}`;
+    ```
+
+-   `/startup/<номер квартиры>` - Топик для уведомления сервера о подключении ESP к сети.
+    Формат данных: Любое содержимое.
 
 ### PostgresSQL
 
@@ -45,13 +67,17 @@
 Синтаксис:
 
 ```
+
 <measurement>[,<tag_key>=<tag_value>[,<tag_key>=<tag_value>]] <field_key>=<field_value>[,<field_key>=<field_value>] [<timestamp>]
+
 ```
 
 Пример:
 
 ```
+
 temp value=36.6
+
 ```
 
 ### Docker
@@ -59,7 +85,9 @@ temp value=36.6
 Рекомендую использовать context для работы с кластером на стенде.
 
 ```
+
 docker context create nti --docker "host=ssh://zhenya@diarrhea.cfeee1e5e4e00a.ru"
+
 ```
 
 #### Linux

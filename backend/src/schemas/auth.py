@@ -11,6 +11,7 @@ class UserResponse(BaseModel):
     id: int
     name: str
     role: Role
+    flat: int
 
     model_config = ConfigDict(
         extra="ignore", populate_by_name=True, use_enum_values=False

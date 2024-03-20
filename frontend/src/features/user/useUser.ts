@@ -1,4 +1,4 @@
-import { getMe } from '@/entities/user/api/getMe';
+import { getMe } from '@/features/user/api/getMe';
 import useSWR from 'swr';
 
 export function useUser() {

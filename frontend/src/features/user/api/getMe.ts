@@ -1,10 +1,10 @@
 import ky from 'ky';
 
-import { User } from '@/entities/user/User';
+import { User } from '@/features/user/User';
 import {
     readAuthTokenFromLocalStorage,
     NotAuthenticatedError,
-} from '@/entities/auth';
+} from '@/features/auth';
 
 export async function getMe(): Promise<User> {
     const authToken = readAuthTokenFromLocalStorage();
