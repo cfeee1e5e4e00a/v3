@@ -36,14 +36,16 @@
     enum Mode = {
         TARGET = 0,
         TARGET_ECONOMY = 1,
-        BY_PROFILE = 2
+        BY_PROFILE = 2,
+        OFF = 3,
     };
 
     type TargetPayload = number /* target temperature */;
     type TargetEconomyPayload = number /* target temperature in economy mode */;
     type ByProfilePayload = `${number/* target temperature */} ${number /* estimated time in seconds */}`;
+    type OffPayload = void;
 
-    type Payload = TargetPayload | TargetEconomyPayload | ByProfilePayload;
+    type Payload = TargetPayload | TargetEconomyPayload | ByProfilePayload | OffPayload;
 
     type Message = `${Mode} ${Payload}`;
     ```
