@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
-from src.api.endpoints.bill.core import create_bill, Status, get_bill, get_user_bills_list, change_bill_status
+from src.api.endpoints.bill.core import create_bill, Status, get_bill, get_user_bills_list, change_bill_status, \
+    all_bills
 
 router = APIRouter(prefix="/bill")
 
@@ -8,6 +9,11 @@ router = APIRouter(prefix="/bill")
 @router.post("/")
 async def add_bill(amount: float, user_id: int):  # type: ignore
     return {"bill_id": await create_bill(amount=amount, status=Status.UNPAID, user_id=user_id)}
+
+
+@router.get("/list")  # type: ignore
+async def get_all_bills():
+    return await all_bills()
 
 
 # TODO: убрать pdf
