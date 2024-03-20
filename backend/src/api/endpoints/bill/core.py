@@ -32,3 +32,9 @@ async def change_bill_status(id: int):
         bill.status = Status.PAID
         await session.commit()
         return {"bill_id": id}
+
+
+async def all_bills():
+    async with async_session_factory() as session:
+        query = select(Bill)
+        return (await session.execute(query)).scalars().all()
