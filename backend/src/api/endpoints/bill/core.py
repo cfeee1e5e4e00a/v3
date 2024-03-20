@@ -65,10 +65,16 @@ def stabilization_cost(flat_id: int, dT: float, dt: float) -> float:
     return α * _FLAT_WINDOWS_SIZE.get(flat_id, _CENTRAL_WINDOWS_SIZE) * dt * dT
 
 
-async def heat_cost_on_period(flat_id: int, T_in: float, T_in_previous: float) -> float:
+def regulation_cost(flat_id: int, T_in: float, T_in_previous: float) -> float:
     return (
         dQ_to_V
         * _FLAT_VOLUME.get(flat_id, _SECOND_FLOOR_FLAT_VOLUME)
         * log2(T_in / T_in_previous)
         / log2(e)
     )
+
+
+async def all_bills():
+    async with async_session_factory() as session:
+        query = select(Bill)
+        return (await session.execute(query)).scalars().all()
