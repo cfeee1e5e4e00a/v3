@@ -1,18 +1,28 @@
 import { FC } from 'react';
 
-import { MeasurementDisplay } from '@/features/measurements/MeasurementDisplay';
+import { MeasurementsGauge } from '@/features/measurements/MeasurementGauge';
 import { useFlatMeasurement } from '@/features/flat/useFlatMeasurement';
 import { MeasurementType } from '@/features/measurements/Measurement';
 import { useUser } from '@/features/user/useUser';
 
-export const FlatTemperatureChart: FC = () => {
+type Props = {
+    measurement: MeasurementType;
+    title: string;
+    unit: string;
+};
+
+export const FlatMeasurementGauge: FC<Props> = ({
+    measurement,
+    title,
+    unit,
+}) => {
     const user = useUser();
     const data = useFlatMeasurement<number>(() =>
         user.data
             ? {
                   flat: 1,
-                  measurement: MeasurementType.TEMPERATURE,
-                  start: '-20m',
+                  measurement,
+                  start: '-1m',
                   stop: 'now()',
                   window: '1m',
               }
@@ -20,10 +30,10 @@ export const FlatTemperatureChart: FC = () => {
     );
 
     return (
-        <MeasurementDisplay<number>
-            data={data.data}
-            label="Температура в °C"
-            title={`Температура в квартире`}
+        <MeasurementsGauge<number>
+            data={data.data?.at(data.data?.length - 1 ?? 0)}
+            title={title}
+            unit={unit}
         />
     );
 };
