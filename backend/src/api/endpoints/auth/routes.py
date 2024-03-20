@@ -1,8 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
-
 from src.models.user import Role
-from src.api.endpoints.auth.core import auth_user, create_access_token, current_user
+from src.api.endpoints.auth.core import auth_user, create_access_token, current_user, create_user
 from src.schemas.auth import LoginRequest, UserResponse
 
 router = APIRouter(prefix="/auth")
@@ -29,3 +28,12 @@ async def get_me(
     user: current_user(),  # type: ignore
 ):
     return user
+
+
+@router.post('/signup')
+async def sign_up(name: str, password: str, role: str):
+    if role == 'admin':
+        await create_user(name=name, password=password, role=Role.ADMIN)
+    elif role == 'user':
+        await create_user(name=name, password=password, role=Role.USER)
+    return 1

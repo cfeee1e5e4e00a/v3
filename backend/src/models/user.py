@@ -2,6 +2,7 @@ from enum import Enum
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.dialects.postgresql import ENUM as PgEnum
+from sqlalchemy.orm import relationship
 
 from src.core.db import PostgresBase
 
@@ -25,10 +26,11 @@ class User(PostgresBase):
     password_hash: str
     role: Enum(ADMIN, USER)
     """
-
+    # TODO: add stage
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False)
     password_hash = Column(String, nullable=False)
     role = Column(PgEnum(Role, create_type=True), nullable=False)
+    bills = relationship("Bill", back_populates="user")
