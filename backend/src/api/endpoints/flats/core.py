@@ -27,6 +27,7 @@ def get_latest_flat_temperature(flat: int) -> float:
     |> filter(fn: (r) => r["_measurement"] == "target_temp")\
     |> filter(fn: (r) => r["flat"] == "{flat}")\
     |> filter(fn: (r) => r["_field"] == "value")\
+    |> sort(columns: ["_time"], desc: true)\
     |> limit(n: 1)"""
 
     data = json.loads(query_api.query(query).to_json())
