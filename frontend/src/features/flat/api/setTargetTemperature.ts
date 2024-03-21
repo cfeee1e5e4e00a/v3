@@ -20,7 +20,7 @@ export async function setTargetTemperature(
     }
 
     const url = new URL(
-        `http://diarrhea.cfeee1e5e4e00a.ru:8000/flats/${params.flat}`,
+        `http://diarrhea.cfeee1e5e4e00a.ru:8000/flats/${params.flat}/target`,
     );
     url.searchParams.set('temp', String(params.temperature));
 
