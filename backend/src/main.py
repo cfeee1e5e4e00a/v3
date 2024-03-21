@@ -1,9 +1,12 @@
+import asyncio
 from contextlib import asynccontextmanager
 
+import uvicorn
 from fastapi import FastAPI
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.middleware.cors import CORSMiddleware
 
+from src.api.endpoints.flats.temperature import start_scheduler_loop
 from src.models.user import Role
 from src.api.endpoints.mqtt.client import mqtt
 import src.api.endpoints.mqtt.core
@@ -34,6 +37,7 @@ async def lifespan(app: FastAPI):
     await create_user_if_not_exists("user4", "123", Role.USER_FLOOR_1, 4)
     await create_user_if_not_exists("user5", "123", Role.USER_FLOOR_1, 5)
     await create_user_if_not_exists("user6", "123", Role.USER_FLOOR_1, 6)
+    sched_task = asyncio.create_task(start_scheduler_loop())
     yield
     await mqtt.mqtt_shutdown()
 
@@ -61,3 +65,7 @@ async def healthcheck():
 @app.get("/docs", include_in_schema=False)
 async def swagger_ui_html():
     return get_swagger_ui_html(openapi_url="/openapi.json", title="NTI-API docs")
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
