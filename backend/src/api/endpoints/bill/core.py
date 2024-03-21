@@ -1,13 +1,16 @@
-import datetime
 import json
 import numpy as np
 from math import log2, e
 from io import BytesIO
 from matplotlib import pyplot as plt
+from typing import Literal
+import numpy as np
+from datetime import datetime
 from fpdf import FPDF
 from sqlalchemy import select
 from itertools import islice
 from influxdb_client import QueryApi
+from influxdb_client.client.flux_table import FluxRecord
 
 from src.core.db import async_session_factory, get_influx_query
 from src.models.bill import Bill, Status
@@ -71,51 +74,65 @@ async def change_bill_status(id: int):
         return {"bill_id": id}
 
 
-def stabilization_cost(flat_id: int, dT: float, dt: float) -> float:
+def stabilization_cost(flat_id: int, dT: np.ndarray, dt: float) -> float:
     return (
-        α * _FLAT_WINDOWS_SIZE.get(flat_id, _CENTRAL_WINDOWS_SIZE) * dt * max(0.0, dT)
+        α
+        * _FLAT_WINDOWS_SIZE.get(flat_id, _CENTRAL_WINDOWS_SIZE)
+        * dt
+        * np.where(dT <= 0, 0, dT)
     )
 
 
 def regulation_cost(flat_id: int, T_in: float, T_in_previous: float) -> float:
-    return (
-        dQ_to_V
-        * _FLAT_VOLUME.get(flat_id, _SECOND_FLOOR_FLAT_VOLUME)
-        * log2(T_in / T_in_previous)
-        / log2(e)
-    )
+    divT = T_in / T_in_previous
+    divT = np.where(divT < 1, 1.0, divT)
+    return dQ_to_V * _FLAT_VOLUME.get(flat_id, _SECOND_FLOOR_FLAT_VOLUME) * np.log(divT)
 
 
-def day_heats_by_range(query_api: QueryApi, flat_id: int, time_range: tuple[str, str]):
+def _get_millis_from_flux_record(r: FluxRecord) -> float:
+    return r.get_time().timestamp()
+
+
+def day_heats_by_range(
+    query_api: QueryApi,
+    flat_id: int,
+    time_range: tuple[str, str],
+    *,
+    agg_every: str = None,
+    agg_fn: Literal["mean", "median", "last"] = None,
+) -> np.ndarray[float]:
     start, stop = time_range
     _itt_querry = f"""from(bucket: "default")\
     |> range(start: {start}, stop: {stop})\
     |> filter(fn: (r) => r["_measurement"] == "temp")\
     |> filter(fn: (r) => r["flat"] == "{flat_id}")\
     |> drop(columns: ["_field", "_measurement", "flat", "host", "topic"])\
-    |> aggregateWindow(every: 12s, fn: mean, createEmpty: false)\
-    |> yield(name: "temp")\
-    |> difference()\
-    |> yield(name: "diff")"""
-    # TODO: убрать лишние поля
-    outer_temp_querry = f"""outer_temp = from(bucket: "default")\
-    |> range(start: {start}, stop: {stop})\
-    |> filter(fn: (r) => r["_measurement"] == "outside_temp")\
-    |> filter(fn: (r) => r["_field"] == "value")"""
+    |> aggregateWindow(every: 12s, fn: mean, createEmpty: false)"""
+    T_out = 24.2
+    T_in = query_api.query(_itt_querry)[0]
 
-    inner_temp, inner_temp_diff = query_api.query(_itt_querry)
-    reg_cost = np.fromiter(
-        regulation_cost(flat_id, T_in, T_in_previous)
-        for T_in, T_in_previous in zip(
-            islice(inner_temp, 1),
-            inner_temp,
-        )
-    )
-    stab_cost = np.fromiter(
-        stabilization_cost(flat_id, dT, dt) for dT, dt in inner_temp_diff
-    )
+    t = np.fromiter(map(_get_millis_from_flux_record, iter(T_in)), dtype=np.float64)
+    dt = np.diff(t)
+
+    T_in = np.fromiter(map(FluxRecord.get_value, iter(T_in)), dtype=np.float64)
+    # NOTE: apply mean by windowsize of 2 elements
+    dT = np.convolve(T_in - T_out, [1 / 2, 1 / 2], mode="valid")
+
+    reg_cost = regulation_cost(flat_id, T_in[1:], T_in[:-1])
+    stab_cost = stabilization_cost(flat_id, dT, dt)
+
+    # print(f"{reg_cost = }")
+    # print(f"{stab_cost = }")
 
     return reg_cost + stab_cost
+
+
+def heat_cost(
+    query_api: QueryApi,
+    flat_id: int,
+    time_range: tuple[str, str],
+) -> float:
+    return np.sum(day_heats_by_range(query_api, flat_id, time_range))
 
 
 async def all_bills():
@@ -161,7 +178,7 @@ def gen_images(Xs, Ys, x_caption, y_caption, label):
 
 
 async def make_report_user_1_floor(
-    room: int, start_date: datetime.datetime, end_date: datetime.datetime
+    room: int, start_date: datetime, end_date: datetime
 ) -> bytes:
     pdf = FPDF()
     pdf.add_page()
@@ -195,7 +212,7 @@ async def make_report_user_1_floor(
     for i in data:
         Ys.append(i["_value"])
         Xs.append(
-            datetime.datetime.fromisoformat(i["_time"]) + datetime.timedelta(hours=7)
+            datetime.fromisoformat(i["_time"]) + datetime.timedelta(hours=7)
         )
     # print(data)
 
@@ -217,7 +234,7 @@ async def make_report_user_1_floor(
     for i in data:
         Ys.append(i["_value"])
         Xs.append(
-            datetime.datetime.fromisoformat(i["_time"]) + datetime.timedelta(hours=7)
+            datetime.fromisoformat(i["_time"]) + datetime.timedelta(hours=7)
         )
     trend_chart = gen_images(Xs, Ys, "Дата", "Заданная температура", "not used")
 
@@ -235,6 +252,6 @@ if __name__ == "__main__":
         day_heats_by_range(
             query_api,
             5,
-            ("-5h", "-0s"),
+            ("-1h", "-0s"),
         )
     )
