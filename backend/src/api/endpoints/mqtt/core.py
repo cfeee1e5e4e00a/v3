@@ -24,7 +24,7 @@ def reconnect(client: MQTTClient, packet, exc=None):
 async def on_device_startup(
     client: MQTTClient, topic: str, payload: str, qos: int, properties
 ):
-    flat = topic.split("/")[2]
+    flat = int(topic.split("/")[2])
 
     # check if flat is disabled
     is_disabled = await is_flat_disabled(flat)
