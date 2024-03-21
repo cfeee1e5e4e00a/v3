@@ -214,6 +214,7 @@ void loop(){
             break;
         case PROFILE:
             run_trend_mode(i);
+            break;
         default:
             Serial.printf("Unsupported mode for room %d: %d\n", i, modes[i]);
             break;
@@ -246,8 +247,9 @@ int run_constant_mode(int room) {
     relay_states[room * 2 + 1] = 1;
     //-----------------ПОМЕНЯЛА УСЛОВИЕ 
     float threshold = (setpoints[room]/10) * 2;
+    // TODO: calibrate this costyl
     threshold = threshold > 8 ? 8 : threshold;
-    if(out < SWITCH_PERIOD/100 || (is_rising[room] && abs(setpoints[room] - room_temps[room]) < threshold)){
+    if(out < SWITCH_PERIOD/100 || (is_rising[room] && abs(setpoints[room] - room_temps[room]) < threshold ) || (room_temps[room] - setpoints[room] >= threshold)){
         t = 10;
         relay_states[room * 2] = 0;
         relay_states[room * 2 + 1] = 0;
@@ -282,6 +284,7 @@ void setup_trend_mode(int room, float target_temp, int time_interval_s){
     trend_start_times[room] = millis();
     trend_target_times[room] = millis() + time_interval_s * 1000;
     trend_start_temps[room] = room_temps[room];
+    modes[room] = PROFILE;
 }
 
 
