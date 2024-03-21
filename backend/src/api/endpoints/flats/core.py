@@ -5,7 +5,7 @@ from src.api import mqtt
 
 def notify_device_target_flat_temperature(flat: int, temp: float):
     payload = f"0 {round(temp, 1)}"
-    mqtt.client.publish(f"/mode/{flat}", payload)
+    mqtt.client.publish(f"/mode/{flat}", payload, qos=1)
 
 
 def save_target_flat_temperature(flat: int, temp: float, write_api: WriteApi):
