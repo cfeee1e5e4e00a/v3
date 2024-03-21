@@ -235,7 +235,9 @@ int run_constant_mode(int room) {
     relay_states[room * 2] = 1;
     relay_states[room * 2 + 1] = 1;
     //-----------------ПОМЕНЯЛА УСЛОВИЕ 
-    if(out < SWITCH_PERIOD/100 || (is_rising[room] && abs(setpoints[room] - room_temps[room]) < (setpoints[room]/10) * 2)){
+    float threshold = (setpoints[room]/10) * 2;
+    threshold = threshold > 8 ? 8 : threshold;
+    if(out < SWITCH_PERIOD/100 || (is_rising[room] && abs(setpoints[room] - room_temps[room]) < threshold)){
         t = 10;
         relay_states[room * 2] = 0;
         relay_states[room * 2 + 1] = 0;
