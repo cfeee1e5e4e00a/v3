@@ -76,6 +76,9 @@ def regulation_cost(flat_id: int, T_in: float, T_in_previous: float) -> float:
     )
 
 
+def heating_cost(start, end):
+    pass
+
 async def all_bills():
     async with async_session_factory() as session:
         query = select(Bill)

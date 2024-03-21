@@ -9,7 +9,7 @@ from src.schemas.bill import BillResponse
 
 router = APIRouter(prefix="/bill")
 
-
+# TODO: добавить промежуток по времени, убрать эмаунт
 @router.post("/")
 async def add_bill(amount: float, user_id: int):  # type: ignore
     return {"bill_id": await create_bill(amount=amount, status=Status.UNPAID, user_id=user_id)}
