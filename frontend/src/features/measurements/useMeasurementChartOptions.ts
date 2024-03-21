@@ -7,7 +7,7 @@ export const measurementChartOptions = [
     },
     {
         period: '5m',
-        window: '30s',
+        window: '10s',
     },
     {
         period: '15m',
@@ -15,27 +15,27 @@ export const measurementChartOptions = [
     },
     {
         period: '30m',
-        window: '2m',
+        window: '1m',
     },
     {
         period: '1h',
-        window: '5m',
+        window: '1m',
     },
     {
         period: '3h',
-        window: '15m',
+        window: '1m',
     },
     {
         period: '6h',
-        window: '30m',
+        window: '1m',
     },
     {
         period: '12h',
-        window: '1h',
+        window: '2m',
     },
     {
         period: '24h',
-        window: '2h',
+        window: '10m',
     },
 ] as const;
 
