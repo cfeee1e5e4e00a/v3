@@ -57,7 +57,7 @@ async def get_measurement_data(
     query_api: QueryApi = Depends(get_influx_query),
 ):
     match measurement:
-        case "temp" | "humd" | "curr":
+        case "temp" | "humd" | "curr" | "set_temp":
             pass
         case _:
             raise HTTPException(

@@ -13,10 +13,15 @@ export const DashboardMyFlatPage: FC = () => {
                 label="Температура в °C"
                 title="Температура в квартире"
             />
-            <div className="grid grid-cols-1 grid-rows-2 gap-4">
+            <div className="grid grid-cols-1 grid-rows-3 gap-4">
                 <FlatMeasurementGauge
                     measurement={MeasurementType.TEMPERATURE}
                     title="Текущая температура в квартире"
+                    unit="°C"
+                />
+                <FlatMeasurementGauge
+                    measurement={MeasurementType.TARGET_TEMPERATURE}
+                    title="Целевая температура в квартире"
                     unit="°C"
                 />
                 <FlatTargetTemperatureControl />

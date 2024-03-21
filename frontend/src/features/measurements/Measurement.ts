@@ -2,6 +2,7 @@ export enum MeasurementType {
     TEMPERATURE = 'temp',
     HUMIDITY = 'humd',
     CURRENT = 'curr',
+    TARGET_TEMPERATURE = 'set_temp',
 }
 
 export type Measurement<T> = {
