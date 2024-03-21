@@ -58,7 +58,9 @@ services:
     image: "grafana/grafana-oss:10.0.12"
     restart: unless-stopped
     environment:
-      - GF_INSTALL_PLUGINS=grafana-image-renderer
+      - GF_RENDERING_SERVER_URL=http://renderer:8081/render
+      - GF_RENDERING_CALLBACK_URL=http://grafana:3000/
+      - GF_LOG_FILTERS=rendering:debug
     ports:
       - "3000:3000"
     depends_on:
@@ -70,6 +72,11 @@ services:
       - "grafana_data:/var/lib/grafana"
       - "./.config/grafana/grafana.ini:/etc/grafana/grafana.ini"
       - "./.config/grafana-provisioning/:/etc/grafana/provisioning"
+
+  renderer:
+    image: grafana/grafana-image-renderer:latest
+    ports:
+      - 8081
 
   influxdb:
     image: "influxdb:2.7.5-alpine"
