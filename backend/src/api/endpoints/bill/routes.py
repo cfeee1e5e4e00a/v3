@@ -1,10 +1,11 @@
+import datetime
 import io
 
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
 from src.api.endpoints.bill.core import create_bill, Status, get_bill, get_user_bills_list, change_bill_status, \
-    all_bills, generate_pdf
+    all_bills, generate_pdf, make_report_user_1_floor
 from src.schemas.bill import BillResponse
 
 router = APIRouter(prefix="/bill")
@@ -40,6 +41,13 @@ async def get_bill_report(bill_id: int):
     pdf = await generate_pdf(bill_id)
     response = StreamingResponse(io.BytesIO(pdf), media_type="application/pdf", headers=headers)
 
+    return response
+
+
+@router.get("/test_trend_report/{room}")
+async def get_test_report_1_floor(room: int):
+    pdf = await make_report_user_1_floor(room ,datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(minutes=15), datetime.datetime.now(tz=datetime.timezone.utc))
+    response = StreamingResponse(io.BytesIO(pdf), media_type="application/pdf")
     return response
 
 

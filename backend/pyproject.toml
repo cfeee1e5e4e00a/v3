@@ -24,6 +24,7 @@ alembic = "^1.13.1"
 fastapi-mqtt = "^2.1.1"
 influxdb-client = "^1.41.0"
 fpdf2 = "^2.7.8"
+matplotlib = "^3.8.3"
 
 
 [build-system]
