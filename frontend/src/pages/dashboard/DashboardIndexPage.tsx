@@ -1,21 +1,20 @@
 import { FC } from 'react';
+import { Navigate } from 'react-router-dom';
 
 import { useUser } from '@/features/user/useUser';
+import { Role } from '@/features/user/User';
 
 export const DashboardIndexPage: FC = () => {
-    const me = useUser();
+    const user = useUser();
 
-    if (me.isLoading || !me.data) {
-        return (
-            <main className="flex h-full w-full items-center justify-center">
-                Загрузка
-            </main>
-        );
+    if (user.isLoading || !user.data) {
+        return null;
     }
 
-    return (
-        <main className="h-full w-full">
-            <h1 className="p-16 text-4xl">Приветствуем, {me.data.name}!</h1>
-        </main>
-    );
+    const dest =
+        user.data.role == Role.ADMIN
+            ? '/dashboard/admin/house'
+            : '/dashboard/my/flat';
+
+    return <Navigate to={dest} />;
 };
