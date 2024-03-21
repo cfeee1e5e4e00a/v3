@@ -13,9 +13,10 @@ import { Role } from '@/features/user/User';
 import { IndexPage } from '@/pages/IndexPage';
 import { SignInPage } from '@/pages/SignInPage';
 import { DashboardIndexPage } from '@/pages/dashboard/DashboardIndexPage';
+import { DashboardMyFlatPage } from '@/pages/dashboard/my/DashboardMyFlatPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { ForbiddenPage } from '@/pages/ForbiddenPage';
-import { DashboardMyFlatPage } from '@/pages/dashboard/DashboardMyFlatPage';
+import { DashboardAdminHousePage } from '@/pages/dashboard/admin/DashboardAdminHousePage';
 
 const router = createBrowserRouter([
     {
@@ -84,7 +85,7 @@ const router = createBrowserRouter([
                         path: 'house',
                         element: (
                             <RoleProtectedRoute roles={[Role.ADMIN]}>
-                                a
+                                <DashboardAdminHousePage />
                             </RoleProtectedRoute>
                         ),
                     },

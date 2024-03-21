@@ -20,15 +20,15 @@ const items = [
         roles: [Role.USER_FLOOR_1, Role.USER_FLOOR_2],
     },
     {
-        displayName: 'Пользователи',
-        icon: <UserIcon />,
-        to: '/dashboard/admin/users',
+        displayName: 'Дом',
+        icon: <HomeIcon />,
+        to: '/dashboard/admin/house',
         roles: [Role.ADMIN],
     },
     {
-        displayName: 'Счёта',
-        icon: <HomeIcon />,
-        to: '/dashboard/admin/house',
+        displayName: 'Пользователи',
+        icon: <UserIcon />,
+        to: '/dashboard/admin/users',
         roles: [Role.ADMIN],
     },
 ];
@@ -46,7 +46,7 @@ export const Navbar: FC = () => {
     );
 
     return (
-        <nav className="bg-accent text-accent-content flex h-full flex-col items-center justify-between gap-8 p-8">
+        <nav className="bg-accent text-accent-content sticky top-0 flex h-screen flex-col items-center justify-between gap-8 p-6">
             <Link to="/dashboard" className="text-2xl">
                 cfee
             </Link>

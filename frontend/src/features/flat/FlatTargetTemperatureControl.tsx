@@ -36,7 +36,7 @@ export const FlatTargetTemperatureControl: FC = () => {
         <div className="flex w-full flex-row items-center justify-center gap-4 rounded-xl bg-white p-4">
             {user.data && (
                 <label className="form-control w-full max-w-xs">
-                    <div className="label w-full">
+                    <div className="label w-full pt-0">
                         <span className="label-text text-lg font-medium text-gray-500">
                             Установить температуру
                         </span>

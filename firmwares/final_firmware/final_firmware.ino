@@ -45,6 +45,12 @@ bool rooms_states[N_ROOMS];
 unsigned long int switch_timer = 0;
 int heat_times[N_ROOMS];
 
+float trend_target_temps[N_ROOMS];
+float trend_target_times[N_ROOMS];
+float trend_start_times[N_ROOMS];
+float trend_start_temps[N_ROOMS];
+
+
 void setup_constant_mode(int room, float setpoint);
 void switch_relays(int room);
 
@@ -129,11 +135,12 @@ void onConnectionEstablished() {
                 setup_off_mode(i);
                 break;
             case CONSTANT:
+            case CONSTANT_ECONOMY:
                 setup_constant_mode(i, arg1);
                 break;
-            //case PROFILE:
-            //    setup_profile_mode(i, arg1);
-            //    break;
+            case PROFILE:
+               setup_trend_mode(i, atof(msg.c_str() + space1 + 1), atoi(msg.c_str() + space2 + 1));
+               break;
             default:
                 Serial.printf("Unsupported mode for room %d: %d\n", i, modes[i]);
                 break;
@@ -202,7 +209,11 @@ void loop(){
             run_off_mode(i);
             break;
         case CONSTANT:
+        case CONSTANT_ECONOMY:
             run_constant_mode(i);
+            break;
+        case PROFILE:
+            run_trend_mode(i);
             break;
         default:
             Serial.printf("Unsupported mode for room %d: %d\n", i, modes[i]);
@@ -236,8 +247,9 @@ int run_constant_mode(int room) {
     relay_states[room * 2 + 1] = 1;
     //-----------------ПОМЕНЯЛА УСЛОВИЕ 
     float threshold = (setpoints[room]/10) * 2;
+    // TODO: calibrate this costyl
     threshold = threshold > 8 ? 8 : threshold;
-    if(out < SWITCH_PERIOD/100 || (is_rising[room] && abs(setpoints[room] - room_temps[room]) < threshold)){
+    if(out < SWITCH_PERIOD/100 || (is_rising[room] && abs(setpoints[room] - room_temps[room]) < threshold ) || (room_temps[room] - setpoints[room] >= threshold)){
         t = 10;
         relay_states[room * 2] = 0;
         relay_states[room * 2 + 1] = 0;
@@ -255,7 +267,6 @@ void setup_constant_mode(int room, float setpoint) {
     modes[room] = CONSTANT;
     setpoints[room] = setpoint;
     pids[room].setpoint = setpoint;
-    pids[room].integral = 0;
 }
 
 void setup_off_mode(int room){
@@ -265,8 +276,24 @@ void setup_off_mode(int room){
     }
     heat_times[room] = 0;
     rooms_states[room] = 0;
+    pids[room].integral = 0;
 }
 
+void setup_trend_mode(int room, float target_temp, int time_interval_s){
+    trend_target_temps[room] = target_temp;
+    trend_start_times[room] = millis();
+    trend_target_times[room] = millis() + time_interval_s * 1000;
+    trend_start_temps[room] = room_temps[room];
+    modes[room] = PROFILE;
+}
+
+
+void run_trend_mode(int room){
+    float current_setpoint = map(min((float)millis(), trend_target_times[room]), trend_start_times[room], trend_target_times[room], trend_start_temps[room], trend_target_temps[room]);
+    setpoints[room] = current_setpoint;
+    pids[room].setpoint = current_setpoint;
+    run_constant_mode(room);
+}
 
 void switch_relays(int room) {
     float m = millis();

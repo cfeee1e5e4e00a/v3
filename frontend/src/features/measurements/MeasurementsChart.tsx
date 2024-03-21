@@ -20,7 +20,7 @@ export const MeasurementsChart = <T,>({
     options: { options, setOptions },
 }: Props<T>) => {
     return (
-        <div className="flex flex-col items-end justify-between rounded-xl bg-white p-4">
+        <div className="flex flex-col items-end justify-between rounded-xl bg-white p-1">
             {!data && <p>loading</p>}
             {data && (
                 <>
@@ -47,7 +47,7 @@ export const MeasurementsChart = <T,>({
                     </div>
                     <label className="form-control w-24 max-w-xs">
                         <select
-                            className="select select-bordered"
+                            className="select select-bordered select-sm"
                             value={options.period}
                             onChange={(event) => {
                                 const option = measurementChartOptions.at(

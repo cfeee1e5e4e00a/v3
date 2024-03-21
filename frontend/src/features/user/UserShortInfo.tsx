@@ -29,8 +29,8 @@ export const UserShortInfo: FC<Props> = ({ user }) => {
             <span>{user.name}</span>
             {user.role !== Role.ADMIN && (
                 <>
-                    <span>Квартира - {user.flat}</span>
-                    <span>Этаж - {floor}</span>
+                    <p>Квартира - {user.flat}</p>
+                    <p>Этаж - {floor}</p>
                 </>
             )}
             <button onClick={onLogoutClick}>Выйти</button>
