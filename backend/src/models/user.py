@@ -1,5 +1,5 @@
 from enum import Enum
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Boolean, false
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.dialects.postgresql import ENUM as PgEnum
 from sqlalchemy.orm import relationship
@@ -38,4 +38,5 @@ class User(PostgresBase):
     password_hash = Column(String, nullable=False)
     role = Column(PgEnum(Role, create_type=True), nullable=False)
     flat = Column(Integer, nullable=False)
+    disabled = Column(Boolean, server_default=false(), nullable=False)
     bills = relationship("Bill", back_populates="user")

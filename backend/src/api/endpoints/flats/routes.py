@@ -5,12 +5,33 @@ from itertools import chain
 from src.core.db import get_influx_query, get_influx_write
 from src.schemas.influx import SensorData
 from src.api.endpoints.auth.core import current_user
+from src.models.user import Role
 from src.api.endpoints.flats.core import (
+    get_latest_flat_temperature,
     notify_device_target_flat_temperature,
+    notify_device_disabled,
     save_target_flat_temperature,
+    toggle_flat,
 )
 
 router = APIRouter(prefix="/flats")
+
+
+@router.post("{flat}/toggle")
+async def toggle_disable_flat(flat: int, state: str, user: current_user([Role.ADMIN])):  # type: ignore
+    match state:
+        case "true" | "false":
+            pass
+        case _:
+            raise HTTPException(status_code=400, detail=f"bad state {state}")
+
+    await toggle_flat(flat, state)
+
+    if state == False:
+        notify_device_disabled(flat)
+    else:
+        temp = get_latest_flat_temperature(flat)
+        notify_device_target_flat_temperature(flat, temp)
 
 
 @router.post("/{flat}/target")

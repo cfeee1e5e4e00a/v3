@@ -1,14 +1,22 @@
 import json
 
 from influxdb_client import Point, WriteApi
+from sqlalchemy import select
 
 from src.core.db import get_influx_query
 from src.core.config import InfluxSettings
 from src.api.endpoints.mqtt.client import mqtt
+from src.core.db import async_session_factory
+from src.models.user import User
 
 
 def notify_device_target_flat_temperature(flat: int, temp: float):
     payload = f"0 {round(temp, 1)}"
+    mqtt.client.publish(f"/mode/{flat}", payload, qos=1)
+
+
+def notify_device_disabled(flat: int):
+    payload = f"3"
     mqtt.client.publish(f"/mode/{flat}", payload, qos=1)
 
 
@@ -34,4 +42,20 @@ def get_latest_flat_temperature(flat: int) -> float:
 
     if not data:
         return 6.66
+
     return data[0]["_value"]
+
+
+async def toggle_flat(flat: int, state: bool):
+    async with async_session_factory() as session:
+        query = select(User).where(User.flat == flat)
+        user = (await session.execute(query)).scalars().first()
+        user.disabled = state
+        await session.commit()
+
+
+async def is_flat_disabled(flat: int):
+    async with async_session_factory() as session:
+        query = select(User).where(User.flat == flat)
+        user = (await session.execute(query)).scalars().first()
+        return user.disabled

@@ -5,6 +5,8 @@ from gmqtt import Client as MQTTClient
 from src.api.endpoints.mqtt.client import mqtt
 from src.api.endpoints.flats.core import (
     get_latest_flat_temperature,
+    is_flat_disabled,
+    notify_device_disabled,
     notify_device_target_flat_temperature,
 )
 from src.core.config import MQTTSettings
@@ -22,5 +24,11 @@ async def on_device_startup(
     client: MQTTClient, topic: str, payload: str, qos: int, properties
 ):
     flat = topic.split("/")[2]
+
+    is_disabled = await is_flat_disabled(flat)
+    if is_disabled:
+        notify_device_disabled(flat)
+        return
+
     temp = get_latest_flat_temperature(flat)
     notify_device_target_flat_temperature(flat, temp)
