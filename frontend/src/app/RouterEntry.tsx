@@ -41,7 +41,9 @@ const router = createBrowserRouter([
             {
                 path: 'my',
                 element: (
-                    <RoleProtectedRoute roles={[Role.USER]}>
+                    <RoleProtectedRoute
+                        roles={[Role.USER_FLOOR_1, Role.USER_FLOOR_2]}
+                    >
                         <Outlet />
                     </RoleProtectedRoute>
                 ),

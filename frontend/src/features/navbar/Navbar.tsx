@@ -11,13 +11,13 @@ const items = [
         displayName: 'Моя квартира',
         icon: <HomeIcon />,
         to: '/dashboard/my/flat',
-        roles: [Role.USER],
+        roles: [Role.USER_FLOOR_1, Role.USER_FLOOR_2],
     },
     {
         displayName: 'Счёта',
         icon: <BanknotesIcon />,
         to: '/dashboard/my/bills',
-        roles: [Role.USER],
+        roles: [Role.USER_FLOOR_1, Role.USER_FLOOR_2],
     },
     {
         displayName: 'Пользователи',

@@ -18,5 +18,6 @@ export function useFlatMeasurement<T>(
         },
         ([, flat, measurement, start, stop, window]) =>
             getFlatMeasurement<T>({ flat, measurement, start, stop, window }),
+        { refreshInterval: 10_000 },
     );
 }

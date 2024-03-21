@@ -6,7 +6,7 @@ import { FlatMeasurementGauge } from '@/features/flat/FlatMeasurementGauge';
 
 export const DashboardMyFlatPage: FC = () => {
     return (
-        <main className="grid h-full w-full grid-cols-2 grid-rows-3 gap-4">
+        <main className="grid w-full grid-cols-2 grid-rows-2 gap-4">
             <FlatMeasurementChart
                 measurement={MeasurementType.TEMPERATURE}
                 label="Температура в °C"

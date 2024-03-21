@@ -22,7 +22,7 @@ export const FlatMeasurementChart: FC<Props> = ({
     const data = useFlatMeasurement<number>(() =>
         user.data
             ? {
-                  flat: 1,
+                  flat: user.data.flat,
                   measurement,
                   start: `-${chartOptions.options.period}`,
                   stop: 'now()',

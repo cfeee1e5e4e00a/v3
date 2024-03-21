@@ -20,7 +20,7 @@ export const FlatMeasurementGauge: FC<Props> = ({
     const data = useFlatMeasurement<number>(() =>
         user.data
             ? {
-                  flat: 1,
+                  flat: user.data.flat,
                   measurement,
                   start: '-1m',
                   stop: 'now()',

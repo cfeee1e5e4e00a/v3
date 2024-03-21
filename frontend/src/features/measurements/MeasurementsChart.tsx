@@ -24,25 +24,27 @@ export const MeasurementsChart = <T,>({
             {!data && <p>loading</p>}
             {data && (
                 <>
-                    <Line
-                        data={{
-                            datasets: [{ data, label }],
-                        }}
-                        options={{
-                            responsive: true,
-                            plugins: {
-                                legend: { position: 'bottom' },
-                                title: {
-                                    display: true,
-                                    text: title,
+                    <div className="flex h-full w-full justify-center">
+                        <Line
+                            data={{
+                                datasets: [{ data, label }],
+                            }}
+                            options={{
+                                responsive: true,
+                                plugins: {
+                                    legend: { position: 'bottom' },
+                                    title: {
+                                        display: true,
+                                        text: title,
+                                    },
                                 },
-                            },
-                            parsing: {
-                                xAxisKey: 'timestamp',
-                                yAxisKey: 'value',
-                            },
-                        }}
-                    />
+                                parsing: {
+                                    xAxisKey: 'timestamp',
+                                    yAxisKey: 'value',
+                                },
+                            }}
+                        />
+                    </div>
                     <label className="form-control w-24 max-w-xs">
                         <select
                             className="select select-bordered"
