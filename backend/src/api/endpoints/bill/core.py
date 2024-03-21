@@ -1,7 +1,9 @@
+from math import log2, e
+
+from fpdf import FPDF
+from sqlalchemy import select
 from src.core.db import async_session_factory
 from src.models.bill import Bill, Status
-from sqlalchemy import select, update
-from math import log2, e
 
 type m2 = float
 type m3 = float
@@ -62,7 +64,7 @@ async def change_bill_status(id: int):
 
 
 def stabilization_cost(flat_id: int, dT: float, dt: float) -> float:
-    return α * _FLAT_WINDOWS_SIZE.get(flat_id, _CENTRAL_WINDOWS_SIZE) * dt * dT
+    return α * _FLAT_WINDOWS_SIZE.get(flat_id, _CENTRAL_WINDOWS_SIZE) * dt * max(0.0, dT)
 
 
 def regulation_cost(flat_id: int, T_in: float, T_in_previous: float) -> float:
@@ -78,3 +80,21 @@ async def all_bills():
     async with async_session_factory() as session:
         query = select(Bill)
         return (await session.execute(query)).scalars().all()
+
+
+async def generate_pdf(bill_id: int):
+    def new_pdf():
+        price = 1000
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font('helvetica', size=40, style='b')
+        pdf.multi_cell(text=f"Schet na oplatu \n\n raskhod energii: {bill.amount} \n k oplate: {bill.amount * price}",
+                       align='C', w=0)
+        return pdf.output()
+
+    async with async_session_factory() as session:
+        query = select(Bill).where(Bill.id == bill_id)
+        bill = (await session.execute(query)).scalars().first()
+        bill.pdf = new_pdf()
+        await session.commit()
+        return bytes(bill.pdf)

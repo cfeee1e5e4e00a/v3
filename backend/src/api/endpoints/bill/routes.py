@@ -1,7 +1,11 @@
+import io
+
 from fastapi import APIRouter
+from fastapi.responses import StreamingResponse
 
 from src.api.endpoints.bill.core import create_bill, Status, get_bill, get_user_bills_list, change_bill_status, \
-    all_bills
+    all_bills, generate_pdf
+from src.schemas.bill import BillResponse
 
 router = APIRouter(prefix="/bill")
 
@@ -13,21 +17,30 @@ async def add_bill(amount: float, user_id: int):  # type: ignore
 
 @router.get("/list")  # type: ignore
 async def get_all_bills():
-    return await all_bills()
+    bills = await all_bills()
+
+    return ({
+        "id": bill.id,
+        "amount": bill.amount,
+        "status": bill.status}
+        for bill in bills)
 
 
-# TODO: убрать pdf
-@router.get("/{bill_id}")
+@router.get("/{bill_id}", response_model=BillResponse)
 async def get_bill_by_id(bill_id: int):
     bill = await get_bill(bill_id)
     return bill
 
 
-# TODO: Скачать pdf-отчёт
 @router.get("/{bill_id}/report")
 async def get_bill_report(bill_id: int):
-    bill = await get_bill(bill_id)
-    return bill.pdf
+    headers = {
+        "Content-Disposition": f"attachment; filename={bill_id}.pdf"
+    }
+    pdf = await generate_pdf(bill_id)
+    response = StreamingResponse(io.BytesIO(pdf), media_type="application/pdf", headers=headers)
+
+    return response
 
 
 @router.get("/users/{user_id}")
