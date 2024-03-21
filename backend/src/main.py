@@ -4,8 +4,10 @@ from fastapi import FastAPI
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api import routers, mqtt, get_user, create_user
 from src.models.user import Role
+from src.api.endpoints.mqtt.client import mqtt
+import src.api.endpoints.mqtt.core
+from src.api import routers, get_user, create_user
 
 
 async def create_admin_if_not_exists(name: str, password: str):
@@ -37,6 +39,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -44,6 +47,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 for router in routers:
     app.include_router(router)
