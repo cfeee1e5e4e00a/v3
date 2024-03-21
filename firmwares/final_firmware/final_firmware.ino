@@ -10,6 +10,7 @@
 
 // #define CALIBRATION_PERIOD 1000
 #define MEASUREMENT_PERIOD 500
+#define PUBLISH_PERIOD 5000
 #define SWITCH_PERIOD 1000
 
 
@@ -46,6 +47,8 @@ int heat_times[N_ROOMS];
 
 void setup_constant_mode(int room, float setpoint);
 void switch_relays(int room);
+
+bool is_rising[N_ROOMS];
 
 void setup()
 {
@@ -97,14 +100,16 @@ void setup()
         //setup current modes
         setup_off_mode(i);
     }
-
+    //__________________TEST PID___________________
+    //pids[0] = GyverPID(800, 5, 0, SWITCH_PERIOD);
+    //pids[0].setDirection(NORMAL);
+    //pids[0].setLimits(0, SWITCH_PERIOD*2);
 
     // setup_constant_mode(0, 50);
 }
 
 void onConnectionEstablished() {
     Serial.println("Connected to mqtt");
-    client->publish("/init", String("power,esp=") + config.client_id + " value=1");
     for(int i = 0; i < N_ROOMS; i++){
         // client->subscribe(String("/relays/")+config.rooms[i].id, [=](String msg){
         //     for(int r  =0; r < N_RELAYS; r++){
@@ -126,37 +131,52 @@ void onConnectionEstablished() {
             case CONSTANT:
                 setup_constant_mode(i, arg1);
                 break;
+            //case PROFILE:
+            //    setup_profile_mode(i, arg1);
+            //    break;
             default:
                 Serial.printf("Unsupported mode for room %d: %d\n", i, modes[i]);
                 break;
             }
         });
     }
+    client->publish(String("/startup/") + config.rooms[0].id, "1");
+    client->publish(String("/startup/") + config.rooms[1].id, "1");
 }
 
 volatile float room_temps[N_ROOMS];
 
 
 unsigned long last_publish = 0;
+unsigned long last_measured = 0;
 
 
 void publish_measurement(String name, int flat, float value){
     client->publish("/sensors", name+",flat="+config.rooms[flat].id+" value="+value);
 }
 
-
+float t;
 
 void loop(){    
     // TODO: uncomment this
     client->loop();
 
-
-    
-
-
     // send new data
     unsigned long m = millis();
-    if (m - last_publish > MEASUREMENT_PERIOD){
+
+    if (m - last_measured > MEASUREMENT_PERIOD) {
+        last_measured = m;
+        for(int i = 0; i < N_ROOMS; i++) {
+            t = dhts[i].readTemperature();
+            if (t - room_temps[i] > 0) {
+                is_rising[i] = 1;
+            } else if (t - room_temps[i] < 0){
+                is_rising[i] = 0;
+            }
+            room_temps[i] = t;
+        }
+    }
+    if (m - last_publish > PUBLISH_PERIOD){
         last_publish = m;
 
         for(int i = 0; i < N_ROOMS; i++){
@@ -175,8 +195,6 @@ void loop(){
         }
     }
 
-    
-
     for (int i = 0; i < N_ROOMS; i++) {
         switch (modes[i])
         {
@@ -193,9 +211,6 @@ void loop(){
 
         switch_relays(i);
     }
-    
-
-
 
     // calibrate_constant_mode(0);
     // switch_relays(0);
@@ -219,11 +234,13 @@ int run_constant_mode(int room) {
     t = out/2;
     relay_states[room * 2] = 1;
     relay_states[room * 2 + 1] = 1;
-    if(out < 5){
+    //-----------------ПОМЕНЯЛА УСЛОВИЕ 
+    if(out < SWITCH_PERIOD/100 || (is_rising[room] && abs(setpoints[room] - room_temps[room]) < (setpoints[room]/10) * 2)){
         t = 10;
         relay_states[room * 2] = 0;
         relay_states[room * 2 + 1] = 0;
     }
+
     heat_times[room] = t;
     return t;
 }
@@ -271,6 +288,11 @@ void switch_relays(int room) {
                 for (int j = 0; j < N_RELAYS; j++) {
                     digitalWrite(config.rooms[room].relay_pins[j], R_OFF);
                 }
+        }
+    }
+    if (room_temps[room] > 60) {
+        for (int j = 0; j < N_RELAYS; j++) {
+                    digitalWrite(config.rooms[room].relay_pins[j], R_OFF);
         }
     }
 
