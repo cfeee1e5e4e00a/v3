@@ -18,7 +18,7 @@ def reconnect(client: MQTTClient, packet, exc=None):
 
 
 @mqtt.subscribe("/startup/#")
-def on_device_startup(
+async def on_device_startup(
     client: MQTTClient, topic: str, payload: str, qos: int, properties
 ):
     flat = topic.split("/")[2]

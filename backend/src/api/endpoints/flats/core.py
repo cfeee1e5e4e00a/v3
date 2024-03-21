@@ -32,4 +32,6 @@ def get_latest_flat_temperature(flat: int) -> float:
 
     data = json.loads(query_api.query(query).to_json())
 
+    if not data:
+        return 6.66
     return data[0]["_value"]
