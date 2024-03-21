@@ -57,6 +57,8 @@ services:
   grafana:
     image: "grafana/grafana-oss:10.0.12"
     restart: unless-stopped
+    environment:
+      - GF_INSTALL_PLUGINS=grafana-image-renderer
     ports:
       - "3000:3000"
     depends_on:
