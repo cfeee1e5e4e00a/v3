@@ -90,8 +90,10 @@ async def generate_pdf(bill_id: int):
         price = 1000
         pdf = FPDF()
         pdf.add_page()
-        pdf.set_font('helvetica', size=40, style='b')
-        pdf.multi_cell(text=f"Schet na oplatu \n\n raskhod energii: {bill.amount} \n k oplate: {bill.amount * price}",
+        pdf.add_font(family='b52',fname='src/FPDF_FONT_DIR/B52.ttf')
+        pdf.set_font('b52', size=40)
+        pdf.cell(text='Счет на оплату')
+        pdf.multi_cell(text=f" Объём потреблённого тепла: {100} \n К оплате: {1000}",
                        align='C', w=0)
         return pdf.output()
 
