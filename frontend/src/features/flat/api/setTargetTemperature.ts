@@ -24,7 +24,7 @@ export async function setTargetTemperature(
     );
     url.searchParams.set('temp', String(params.temperature));
 
-    const res = await ky(url, {
+    const res = await ky.post(url, {
         headers: {
             Authorization: authToken,
         },
