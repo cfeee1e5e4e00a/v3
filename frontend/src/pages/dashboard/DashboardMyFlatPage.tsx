@@ -3,6 +3,7 @@ import { FC } from 'react';
 import { MeasurementType } from '@/features/measurements/Measurement';
 import { FlatMeasurementChart } from '@/features/flat/FlatMeasurementChart';
 import { FlatMeasurementGauge } from '@/features/flat/FlatMeasurementGauge';
+import { FlatTargetTemperatureControl } from '@/features/flat/FlatTargetTemperatureControl';
 
 export const DashboardMyFlatPage: FC = () => {
     return (
@@ -12,11 +13,14 @@ export const DashboardMyFlatPage: FC = () => {
                 label="Температура в °C"
                 title="Температура в квартире"
             />
-            <FlatMeasurementGauge
-                measurement={MeasurementType.TEMPERATURE}
-                title="Текущая температура в квартире"
-                unit="°C"
-            />
+            <div className="grid grid-cols-1 grid-rows-2 gap-4">
+                <FlatMeasurementGauge
+                    measurement={MeasurementType.TEMPERATURE}
+                    title="Текущая температура в квартире"
+                    unit="°C"
+                />
+                <FlatTargetTemperatureControl />
+            </div>
             <FlatMeasurementChart
                 measurement={MeasurementType.HUMIDITY}
                 label="Влажность в %"

@@ -1,48 +1,15 @@
-from fastapi import Depends, APIRouter, HTTPException
-from influxdb_client import QueryApi
-from itertools import chain
-
-from src.core.db import get_influx_query
-from src.schemas.influx import SensorData
-from src.api.endpoints.auth.core import current_user
-
-router = APIRouter(prefix="/flats")
+from influxdb_client import Point, WriteApi
+from src.core.config import InfluxSettings
+from src.api import mqtt
 
 
-@router.get("/{flat}/{measurement}", response_model=list[SensorData[float]])
-async def get_measurement_data(
-    flat: int,
-    measurement: str,
-    start: str,
-    stop: str,
-    window: str,
-    tz: str,
-    user: current_user(),  # type: ignore
-    query_api: QueryApi = Depends(get_influx_query),
-):
-    match measurement:
-        case "temp" | "humd" | "curr":
-            pass
-        case _:
-            raise HTTPException(
-                status_code=400, detail=f"bad measurement {measurement}"
-            )
+def notify_device_target_flat_temperature(flat: int, temp: float):
+    payload = f"0 {round(temp, 1)}"
+    mqtt.client.publish(f"/mode/{flat}", payload)
 
-    query = f"""from(bucket: "default")\
-    |> range(start: {start}, stop: {stop})\
-    |> filter(fn: (r) => r["_measurement"] == "{measurement}")\
-    |> filter(fn: (r) => r["flat"] == "{flat}")\
-    |> filter(fn: (r) => r["_field"] == "value")\
-    |> aggregateWindow(every: {window}, fn: mean)"""
 
-    tables = query_api.query(query)
+def save_target_flat_temperature(flat: int, temp: float, write_api: WriteApi):
+    p = Point("target_temp").tag("flat", flat).field("value", temp)
 
-    mapper = SensorData[float].from_flux_record(tz)
-
-    return map(
-        mapper,
-        filter(
-            lambda x: x.get_value() is not None,
-            chain.from_iterable(table.records for table in tables),
-        ),
-    )
+    write_api.write(bucket="default", org=InfluxSettings.org, record=[p])
+    write_api.close()

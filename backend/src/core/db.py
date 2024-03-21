@@ -3,6 +3,7 @@ from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy.orm import declarative_base
 from influxdb_client import InfluxDBClient
+from influxdb_client.client.write_api import SYNCHRONOUS
 
 from src.core.config import PostgresSettings, InfluxSettings
 
@@ -28,3 +29,7 @@ InfluxClient = InfluxDBClient(
 
 def get_influx_query():
     yield InfluxClient.query_api()
+
+
+def get_influx_write():
+    yield InfluxClient.write_api(write_options=SYNCHRONOUS)

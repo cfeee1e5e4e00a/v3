@@ -7,6 +7,7 @@ import {
     MeasurementType,
     MeasurementsData,
 } from '@/features/measurements/Measurement';
+import ky from 'ky';
 
 export type GetFlatMeasurementParams = {
     flat: Flat['id'];
@@ -37,7 +38,7 @@ export async function getFlatMeasurement<T>(
         Intl.DateTimeFormat().resolvedOptions().timeZone,
     );
 
-    const res = await fetch(url, {
+    const res = await ky(url, {
         headers: {
             Authorization: authToken,
         },

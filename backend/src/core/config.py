@@ -38,6 +38,7 @@ class InfluxSettings(BaseSettings):
     url: str
     token: str
     org: str
+    bucket: str = "default"
 
     model_config = SettingsConfigDict(
         env_file=".env", env_prefix="INFLUX_", extra="ignore"

@@ -15,7 +15,7 @@ export const MeasurementsGauge = <T,>({ data, title, unit }: Props<T>) => {
                     <span className="text-6xl font-medium">
                         {String(data.value)} {unit}
                     </span>
-                    <p className="text-medium text-lg">{title}</p>
+                    <p className="text-lg font-medium">{title}</p>
                 </div>
             )}
         </div>

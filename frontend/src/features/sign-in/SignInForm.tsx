@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 
-import { useSignInMutation } from '@/features/sign-in/useSignIn';
+import { useSignInMutation } from '@/features/sign-in/useSignInMutation';
 import {
     SignInFormValidationSchema,
     useSignInFormValidation,
