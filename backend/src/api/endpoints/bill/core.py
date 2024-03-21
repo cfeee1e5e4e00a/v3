@@ -1,13 +1,17 @@
 import datetime
 import json
-from io import BytesIO
+import numpy as np
 from math import log2, e
+from io import BytesIO
 from matplotlib import pyplot as plt
-
 from fpdf import FPDF
 from sqlalchemy import select
+from itertools import islice
+from influxdb_client import QueryApi
+
 from src.core.db import async_session_factory, get_influx_query
 from src.models.bill import Bill, Status
+
 
 type m2 = float
 type m3 = float
@@ -68,7 +72,9 @@ async def change_bill_status(id: int):
 
 
 def stabilization_cost(flat_id: int, dT: float, dt: float) -> float:
-    return α * _FLAT_WINDOWS_SIZE.get(flat_id, _CENTRAL_WINDOWS_SIZE) * dt * max(0.0, dT)
+    return (
+        α * _FLAT_WINDOWS_SIZE.get(flat_id, _CENTRAL_WINDOWS_SIZE) * dt * max(0.0, dT)
+    )
 
 
 def regulation_cost(flat_id: int, T_in: float, T_in_previous: float) -> float:
@@ -80,8 +86,37 @@ def regulation_cost(flat_id: int, T_in: float, T_in_previous: float) -> float:
     )
 
 
-def heating_cost(start, end):
-    pass
+def day_heats_by_range(query_api: QueryApi, flat_id: int, time_range: tuple[str, str]):
+    start, stop = time_range
+    _itt_querry = f"""from(bucket: "default")\
+    |> range(start: {start}, stop: {stop})\
+    |> filter(fn: (r) => r["_measurement"] == "temp")\
+    |> filter(fn: (r) => r["flat"] == "{flat_id}")\
+    |> drop(columns: ["_field", "_measurement", "flat", "host", "topic"])\
+    |> aggregateWindow(every: 12s, fn: mean, createEmpty: false)\
+    |> yield(name: "temp")\
+    |> difference()\
+    |> yield(name: "diff")"""
+    # TODO: убрать лишние поля
+    outer_temp_querry = f"""outer_temp = from(bucket: "default")\
+    |> range(start: {start}, stop: {stop})\
+    |> filter(fn: (r) => r["_measurement"] == "outside_temp")\
+    |> filter(fn: (r) => r["_field"] == "value")"""
+
+    inner_temp, inner_temp_diff = query_api.query(_itt_querry)
+    reg_cost = np.fromiter(
+        regulation_cost(flat_id, T_in, T_in_previous)
+        for T_in, T_in_previous in zip(
+            islice(inner_temp, 1),
+            inner_temp,
+        )
+    )
+    stab_cost = np.fromiter(
+        stabilization_cost(flat_id, dT, dt) for dT, dt in inner_temp_diff
+    )
+
+    return reg_cost + stab_cost
+
 
 async def all_bills():
     async with async_session_factory() as session:
@@ -94,11 +129,14 @@ async def generate_pdf(bill_id: int):
         price = 1000
         pdf = FPDF()
         pdf.add_page()
-        pdf.add_font(family='b52',fname='src/FPDF_FONT_DIR/B52.ttf')
-        pdf.set_font('b52', size=40)
-        pdf.cell(text='Счет на оплату')
-        pdf.multi_cell(text=f" Объём потреблённого тепла: {100} \n К оплате: {1000}",
-                       align='C', w=0)
+        pdf.add_font(family="b52", fname="src/FPDF_FONT_DIR/B52.ttf")
+        pdf.set_font("b52", size=40)
+        pdf.cell(text="Счет на оплату")
+        pdf.multi_cell(
+            text=f" Объём потреблённого тепла: {100} \n К оплате: {1000}",
+            align="C",
+            w=0,
+        )
         return pdf.output()
 
     async with async_session_factory() as session:
@@ -117,23 +155,26 @@ def gen_images(Xs, Ys, x_caption, y_caption, label):
     plot.set_xlabel(x_caption)
     plot.set_ylabel(y_caption)
     bio = BytesIO()
-    plot.figure.savefig(bio, format='png')
+    plot.figure.savefig(bio, format="png")
     # plot.
     return bio
 
-async def make_report_user_1_floor(room: int, start_date: datetime.datetime, end_date: datetime.datetime) -> bytes:
+
+async def make_report_user_1_floor(
+    room: int, start_date: datetime.datetime, end_date: datetime.datetime
+) -> bytes:
     pdf = FPDF()
     pdf.add_page()
     # pdf.add_font(family='b52', fname='B52.ttf')
-    pdf.add_font(family='b52', fname='src/FPDF_FONT_DIR/B52.ttf')
-    pdf.set_font('b52', size=40)
-    pdf.cell(text=f'Счет на оплату за квартиру {room}', align='C', w=0, ln=1)
-    pdf.set_font('b52', size=20)
-    pdf.cell(text=f'{start_date} - {end_date}', align='C', w=0, ln=1)
-    pdf.cell(text='', align='L', w=0, ln=1, h=10)
-    pdf.set_font('b52', size=25)
-    pdf.cell(text=f'Объем потребленного тепла: <UNKNOWN> кВт', align='L', w=0, ln=1)
-    #графики заданного и текущего тренда
+    pdf.add_font(family="b52", fname="src/FPDF_FONT_DIR/B52.ttf")
+    pdf.set_font("b52", size=40)
+    pdf.cell(text=f"Счет на оплату за квартиру {room}", align="C", w=0, ln=1)
+    pdf.set_font("b52", size=20)
+    pdf.cell(text=f"{start_date} - {end_date}", align="C", w=0, ln=1)
+    pdf.cell(text="", align="L", w=0, ln=1, h=10)
+    pdf.set_font("b52", size=25)
+    pdf.cell(text=f"Объем потребленного тепла: <UNKNOWN> кВт", align="L", w=0, ln=1)
+    # графики заданного и текущего тренда
 
     query_api = next(get_influx_query())
 
@@ -145,7 +186,6 @@ async def make_report_user_1_floor(room: int, start_date: datetime.datetime, end
         |> sort(columns: ["_time"])\
         """
 
-
     # print(query)
 
     # first chart
@@ -153,11 +193,15 @@ async def make_report_user_1_floor(room: int, start_date: datetime.datetime, end
     Xs = []
     Ys = []
     for i in data:
-        Ys.append(i['_value'])
-        Xs.append(datetime.datetime.fromisoformat(i['_time'])+datetime.timedelta(hours=7))
+        Ys.append(i["_value"])
+        Xs.append(
+            datetime.datetime.fromisoformat(i["_time"]) + datetime.timedelta(hours=7)
+        )
     # print(data)
 
-    consumption_chart = gen_images(Xs, Ys, 'Дата', 'Фактическая температура', 'Температура')
+    consumption_chart = gen_images(
+        Xs, Ys, "Дата", "Фактическая температура", "Температура"
+    )
 
     # second chart
     query = f"""from(bucket: "default")\
@@ -171,12 +215,26 @@ async def make_report_user_1_floor(room: int, start_date: datetime.datetime, end
     Xs = []
     Ys = []
     for i in data:
-        Ys.append(i['_value'])
-        Xs.append(datetime.datetime.fromisoformat(i['_time']) + datetime.timedelta(hours=7))
-    trend_chart = gen_images(Xs, Ys, 'Дата', 'Заданная температура', 'not used')
-
+        Ys.append(i["_value"])
+        Xs.append(
+            datetime.datetime.fromisoformat(i["_time"]) + datetime.timedelta(hours=7)
+        )
+    trend_chart = gen_images(Xs, Ys, "Дата", "Заданная температура", "not used")
 
     # url = f'http://grafana.cfeee1e5e4e00a.ru:3000/render/d-solo/e6808168-29f4-4aca-854e-88948c406ff9/billing?orgId=1&from=1711005732627&to=1711027332627&theme=light&panelId=1&width=1000&height=500&tz=Asia%2FTomsk'
-    pdf.image(consumption_chart, w=pdf.epw*0.95)
+    pdf.image(consumption_chart, w=pdf.epw * 0.95)
     pdf.image(trend_chart, w=pdf.epw * 0.95)
     return pdf.output()
+
+
+if __name__ == "__main__":
+    from src.core.db import get_influx_query
+
+    query_api = next(get_influx_query())
+    print(
+        day_heats_by_range(
+            query_api,
+            5,
+            ("-5h", "-0s"),
+        )
+    )
