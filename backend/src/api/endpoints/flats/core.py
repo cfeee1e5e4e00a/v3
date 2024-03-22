@@ -58,7 +58,7 @@ async def toggle_flat(flat: int, state: bool):
     async with async_session_factory() as session:
         query = select(User).where(User.flat == flat)
         user = (await session.execute(query)).scalars().first()
-        user.disabled = state
+        user.disabled = not state
         await session.commit()
 
 

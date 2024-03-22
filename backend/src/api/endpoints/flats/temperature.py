@@ -12,47 +12,9 @@ from src.api.endpoints.flats.core import notify_device_target_flat_temperature, 
     get_latest_flat_temperature
 from src.core.db import get_influx_query, async_session_factory
 from src.models.temp_schedule import TempScheduleEntry
-from src.models.user import Role
-from src.schemas.influx import SensorData
-from src.api.endpoints.auth.core import current_user
-from src.api.endpoints.flats import flats_router as router
-from src.schemas.schedule import Schedule
 
 
-@router.post("/{flat}/schedule")
-async def set_flat_temp_schedule(
-    flat: int,
-    user: current_user(),  # type: ignore
-    schedule: Schedule,
-):
-    async with async_session_factory() as session:
-        await session.execute(
-            delete(TempScheduleEntry).where(TempScheduleEntry.flat == flat)
-        )
-        start_time = datetime.datetime.now()
-        prev_offset = 0
-        for entry in schedule.entries:
-            session.add(
-                TempScheduleEntry(
-                    flat=flat,
-                    start_time=start_time,
-                    was_sent=False,
-                    start_offset=prev_offset,
-                    end_offset=entry.time,
-                    target_temp=entry.temp,
-                )
-            )
-            prev_offset = entry.time
-        await session.commit()
 
-
-@router.get("/{flat}/has_schedule")
-async def flat_has_schedule(flat: int) -> bool:
-    async with async_session_factory() as session:
-        res = await session.execute(
-            select(TempScheduleEntry).where(TempScheduleEntry.flat == flat)
-        )
-        return res.scalars().first() is not None
 
 
 # TODO: remove schedule when selecting other modes

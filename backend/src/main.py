@@ -37,7 +37,7 @@ async def lifespan(app: FastAPI):
     await create_user_if_not_exists("user4", "123", Role.USER_FLOOR_1, 4)
     await create_user_if_not_exists("user5", "123", Role.USER_FLOOR_1, 5)
     await create_user_if_not_exists("user6", "123", Role.USER_FLOOR_1, 6)
-    # sched_task = asyncio.create_task(start_scheduler_loop())
+    sched_task = asyncio.create_task(start_scheduler_loop())
     yield
     await mqtt.mqtt_shutdown()
 
