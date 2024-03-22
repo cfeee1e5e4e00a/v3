@@ -247,6 +247,12 @@ int run_constant_mode(int room) {
     relay_states[room * 2 + 1] = 1;
     //-----------------ПОМЕНЯЛА УСЛОВИЕ 
     float threshold = (setpoints[room]/10) * 2;
+    if (setpoints[room] > 45) {
+        threshold = 4.5;
+    }
+    if (modes[room] == PROFILE) {
+        threshold = 3;
+    }
     // TODO: calibrate this costyl
     threshold = threshold > 8 ? 8 : threshold;
     if(out < SWITCH_PERIOD/100 || (is_rising[room] && abs(setpoints[room] - room_temps[room]) < threshold ) || (room_temps[room] - setpoints[room] >= threshold)){
