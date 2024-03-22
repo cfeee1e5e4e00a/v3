@@ -59,7 +59,7 @@ async def set_target_temperature(
 @router.post("/{flat}/schedule")
 async def set_flat_temp_schedule(
     flat: int,
-    user: current_user(),
+    user: current_user(), # type: ignore
     schedule: Schedule,
 ):
     async with async_session_factory() as session:
