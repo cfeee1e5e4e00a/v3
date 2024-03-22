@@ -9,7 +9,7 @@ from sqlalchemy import delete, select
 
 from src.api.endpoints.flats.temperature import remove_schedule
 from src.core.db import get_influx_query, get_influx_write, async_session_factory
-from src.models import TempScheduleEntry
+from src.models import TempScheduleEntry, α, T_out, _FLAT_WINDOWS_SIZE, P_max
 from src.schemas.influx import SensorData
 from src.api.endpoints.auth.core import current_user
 from src.models.user import Role
@@ -35,7 +35,7 @@ async def toggle_disable_flat(flat: int, state: str, user: current_user([Role.AD
         case _:
             raise HTTPException(status_code=400, detail=f"bad state {state}")
 
-    state = {'true': True, 'false': False}[state]
+    state = {"true": True, "false": False}[state]
 
     await toggle_flat(flat, state)
 
@@ -62,7 +62,7 @@ async def set_target_temperature(
 @router.post("/{flat}/schedule")
 async def set_flat_temp_schedule(
     flat: int,
-    user: current_user(), # type: ignore
+    user: current_user(),  # type: ignore
     schedule: Schedule,
 ):
     async with async_session_factory() as session:
@@ -127,7 +127,6 @@ async def check_flat_energy_possibility(
 
 @router.post("/flats/can_decrease_energy")
 async def check_flat_energy_possibilities(
-    flat: int,
     dDolya: float,
     query_api: QueryApi = Depends(get_influx_query),
 ) -> bool:
@@ -144,16 +143,37 @@ async def check_flat_energy_possibilities(
     |> drop(columns: ["_measurement", "_field", "_time"])
     |> last()"""
     # TODO: parse queries to float arrays
+    target_temps = query_api.query(all_last_target_temps_query)
+    consumptions = query_api.query(all_last_consumption_rates)
+    temps_dict = {}
+    consu_dict = {}
+    for i in range(6):
+        temps_dict[target_temps[i].records[0]["flat"]] = target_temps[i].records[0][
+            "_value"
+        ]
+        consu_dict[consumptions[i].records[0]["flat"]] = consumptions[i].records[0][
+            "_value"
+        ]
     # TODO: count min_consumptions from target_temps
+    min_consumptions = {
+        flat: (temp - T_out) * α * _FLAT_WINDOWS_SIZE.get(int(flat)) / 2 / P_max
+        for flat, temp in temps_dict.items()
+    }
+
     # TODO: current_consumptions - min_consumptions = dCumsuctions
+    dCumsuction = [
+        min(1, max(0, consu_dict[flat] - min_consumptions[flat]))
+        for flat in min_consumptions.keys()
+    ]
+
     # TODO: np.sum(dCumsuctions) / 6 = dNormalizedSumCumsuction
+    dNormalizedSumCumsuction = sum(dCumsuction) / len(dCumsuction)
+
     # TODO: if dNormalizedSumCumsuction > dDolya then true else false
-
-# @router.get("/flats/can_decrease_energy")
-# async def check_flat_energy_possibilities(
+    return dNormalizedSumCumsuction > dDolya
 
 
-# THIS SHOULD BE THE LOWEST DEFINED HANDLE
+# NOTE: THIS SHOULD BE THE LOWEST DEFINED HANDLE
 @router.get("/{flat}/{measurement}", response_model=list[SensorData[float]])
 async def get_measurement_data(
     flat: int,
