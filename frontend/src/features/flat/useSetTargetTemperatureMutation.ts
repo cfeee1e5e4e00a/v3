@@ -8,7 +8,7 @@ import {
 export function useSetTargetTemperatureMutation() {
     return useSWRMutation(
         `/flats/target`,
-        async (_, { arg }: { arg: SetTargetTemperatureParams }) => {
+        (_, { arg }: { arg: SetTargetTemperatureParams }) => {
             setTargetTemperature(arg);
         },
     );

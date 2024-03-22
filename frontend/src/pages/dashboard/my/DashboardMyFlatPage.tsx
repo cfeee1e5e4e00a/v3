@@ -4,8 +4,17 @@ import { MeasurementType } from '@/features/measurements/Measurement';
 import { FlatMeasurementChart } from '@/features/flat/FlatMeasurementChart';
 import { FlatMeasurementGauge } from '@/features/flat/FlatMeasurementGauge';
 import { FlatTargetTemperatureControl } from '@/features/flat/FlatTargetTemperatureControl';
+import { useUser } from '@/features/user/useUser';
+import { SetTemperatureScheduleForm } from '@/features/flat/SetTemperatureScheduleForm';
+import { Role } from '@/features/user/User';
 
 export const DashboardMyFlatPage: FC = () => {
+    const user = useUser();
+
+    if (!user.data) {
+        return null;
+    }
+
     return (
         <main className="grid w-full grid-cols-2 grid-rows-2 gap-4">
             <FlatMeasurementChart
@@ -31,6 +40,9 @@ export const DashboardMyFlatPage: FC = () => {
                 label="Влажность в %"
                 title="Влажность в квартире"
             />
+            {user.data.role === Role.USER_FLOOR_1 && (
+                <SetTemperatureScheduleForm flat={user.data.flat} />
+            )}
             <FlatMeasurementChart
                 measurement={MeasurementType.CURRENT}
                 label="Потребление тока в А"

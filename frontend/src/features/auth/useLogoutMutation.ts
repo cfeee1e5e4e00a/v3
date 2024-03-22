@@ -4,7 +4,7 @@ import useSWRMutation from 'swr/mutation';
 import { logout } from '@/features/auth';
 
 export function useLogoutMutation() {
-    return useSWRMutation('/auth/me', async () => {
+    return useSWRMutation('/auth/me', () => {
         logout();
         mutate('localStorage://auth-token');
     });
