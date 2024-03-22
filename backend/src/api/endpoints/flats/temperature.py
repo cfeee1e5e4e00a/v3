@@ -23,6 +23,7 @@ async def remove_schedule(flat: int):
         await session.execute(
             delete(TempScheduleEntry).where(TempScheduleEntry.flat == flat)
         )
+        await  session.commit()
 
 
 async def get_schedule_entries(flat: int) -> list[TempScheduleEntry]:
