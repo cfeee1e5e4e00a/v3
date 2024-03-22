@@ -198,7 +198,10 @@ def energy_efficiency(
     T = query_api.query(all_last_target_temps_query)[0].records[0].get_value()
     kngh = query_api.query(vashe_nasrat_pochti_kpd)[0].records[0].get_value()
 
-    return α * _FLAT_WINDOWS_SIZE.get(flat_id) * (T - T_out) / (P_max * kngh)
+    ahsudhk = min(1, max(0, P_max * kngh))
+    if ahsudhk == 0:
+        return 0
+    return 1 - α * _FLAT_WINDOWS_SIZE.get(flat_id) * (T - T_out) / ahsudhk
 
 
 @router.post("/flats/energy_efic")
@@ -227,9 +230,9 @@ async def energy_efficiency(query_api: QueryApi = Depends(get_influx_query)) -> 
     aksdjsa = sum(min(1, max(0, P_max * kngh)) for kngh in knghs)
 
     if aksdjsa == 0:
-        return 1
+        return 0
 
-    return (
+    return 1 - (
         sum(α * _FLAT_WINDOWS_SIZE.get(int(flat)) * (T - T_out) for T, flat in Ts)
         / aksdjsa
     )
