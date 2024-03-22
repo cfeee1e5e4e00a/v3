@@ -17,7 +17,7 @@ from src.models import (
     _FLAT_WINDOWS_SIZE,
     _SECOND_FLOOR_FLAT_VOLUME,
     α,
-    dQ_to_V,
+    dQ_to_V, User,
 )
 from src.core.db import async_session_factory, get_influx_query
 from src.models.bill import Bill, Status
@@ -120,29 +120,19 @@ async def all_bills():
         return (await session.execute(query)).scalars().all()
 
 
-async def generate_pdf(bill_id: int):
-    def new_pdf():
-        price = 1000
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.add_font(family="b52", fname="src/FPDF_FONT_DIR/B52.ttf")
-        pdf.set_font("b52", size=40)
-        pdf.cell(text="Счет на оплату")
-        # TODO: Apply heat cost
-        # TODO: Apply heat amount
-        pdf.multi_cell(
-            text=f" Объём потреблённого тепла: {100} \n К оплате: {1000}",
-            align="C",
-            w=0,
-        )
-        return pdf.output()
+async def generate_pdf(bill_id: int) -> bytes:
 
     async with async_session_factory() as session:
         query = select(Bill).where(Bill.id == bill_id)
-        bill = (await session.execute(query)).scalars().first()
-        bill.pdf = new_pdf()
-        await session.commit()
-        return bytes(bill.pdf)
+        bill: Bill = (await session.execute(query)).scalars().first()
+        user: User = (await session.execute(select(User).where(User.id == bill.user_id))).scalars().first()
+            # first floor
+        do_graphs = user.flat in [4, 5, 6]  # first floor
+        return await make_report_user_1_floor(user.flat, datetime.now() - timedelta(hours=2), datetime.now(), bill.amount, bill.amount * 2.28, do_graphs)
+
+        # bill.pdf = new_pdf()
+        # await session.commit()
+        # return bytes(bill.pdf)
 
 
 def gen_images(Xs, Ys, x_caption, y_caption, label):
@@ -157,9 +147,10 @@ def gen_images(Xs, Ys, x_caption, y_caption, label):
     # plot.
     return bio
 
+# async def make_admin_pdf()
 
 async def make_report_user_1_floor(
-    room: int, start_date: datetime, end_date: datetime
+    room: int, start_date: datetime, end_date: datetime, energy: float, cost: float, do_graphs: bool
 ) -> bytes:
     pdf = FPDF()
     pdf.add_page()
@@ -171,12 +162,13 @@ async def make_report_user_1_floor(
     pdf.cell(text=f"{start_date} - {end_date}", align="C", w=0, ln=1)
     pdf.cell(text="", align="L", w=0, ln=1, h=10)
     pdf.set_font("b52", size=20)
-    pdf.cell(text=f"Объем потребленного тепла: {random.uniform(10.0, 100.0)} кВт", align="L", w=0, ln=1)
+    pdf.cell(text=f"Объем потребленного тепла: {energy} кВт", align="L", w=0, ln=1)
+    pdf.cell(text=f"Сумма: {cost} Р", align="L", w=0, ln=1)
 
     query_api = next(get_influx_query())
 
     query = f"""from(bucket: "default")\
-        |> range(start: {start_date.isoformat().split('+')[0]}Z, stop: {end_date.isoformat().split('+')[0]}Z)
+        |> range(start: -2h, stop: now())
         |> filter(fn: (r) => r["_measurement"] == "temp")\
         |> filter(fn: (r) => r["flat"] == "{room}")\
         |> filter(fn: (r) => r["_field"] == "value")\
@@ -196,7 +188,7 @@ async def make_report_user_1_floor(
 
     # second chart
     query = f"""from(bucket: "default")\
-            |> range(start: {start_date.isoformat().split('+')[0]}Z, stop: {end_date.isoformat().split('+')[0]}Z)
+            |> range(start: -2h, stop: now())
             |> filter(fn: (r) => r["_measurement"] == "set_temp")\
             |> filter(fn: (r) => r["flat"] == "{room}")\
             |> filter(fn: (r) => r["_field"] == "value")\
@@ -210,8 +202,9 @@ async def make_report_user_1_floor(
         Xs.append(datetime.fromisoformat(i["_time"]) + timedelta(hours=7))
     trend_chart = gen_images(Xs, Ys, "Дата", "Заданная температура", "not used")
 
-    pdf.image(consumption_chart, w=pdf.epw * 0.95)
-    pdf.image(trend_chart, w=pdf.epw * 0.95)
+    if do_graphs:
+        pdf.image(consumption_chart, w=pdf.epw * 0.95)
+        pdf.image(trend_chart, w=pdf.epw * 0.95)
     return pdf.output()
 
 

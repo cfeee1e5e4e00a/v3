@@ -73,20 +73,20 @@ async def get_bill_report(bill_id: int):
     return response
 
 
-@router.get("/test_trend_report/{room}")
-async def get_test_report_1_floor(room: int, bill_id: int):
-    pdf = await make_report_user_1_floor(
-        room,
-        datetime.datetime.now(tz=datetime.timezone.utc)
-        - datetime.timedelta(minutes=15),
-        datetime.datetime.now(tz=datetime.timezone.utc),
-    )
-    headers = {"Content-Disposition": f"attachment; filename={bill_id}.pdf"}
-    response = StreamingResponse(
-        io.BytesIO(pdf), media_type="application/pdf", headers=headers
-    )
-
-    return response
+# @router.get("/test_trend_report/{room}")
+# async def get_test_report_1_floor(room: int, bill_id: int):
+#     pdf = await make_report_user_1_floor(
+#         room,
+#         datetime.datetime.now(tz=datetime.timezone.utc)
+#         - datetime.timedelta(minutes=15),
+#         datetime.datetime.now(tz=datetime.timezone.utc),
+#     )
+#     headers = {"Content-Disposition": f"attachment; filename={bill_id}.pdf"}
+#     response = StreamingResponse(
+#         io.BytesIO(pdf), media_type="application/pdf", headers=headers
+#     )
+#
+#     return response
 
 
 @router.get("/users/{user_id}")
