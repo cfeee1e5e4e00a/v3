@@ -24,7 +24,7 @@ from src.schemas.schedule import Schedule
 router = APIRouter(prefix="/flats")
 
 
-@router.post("{flat}/toggle")
+@router.post("/{flat}/toggle")
 async def toggle_disable_flat(flat: int, state: str, user: current_user([Role.ADMIN])):  # type: ignore
     match state:
         case "true" | "false":
