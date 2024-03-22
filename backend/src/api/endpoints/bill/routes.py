@@ -6,6 +6,9 @@ from fastapi import Depends
 from fastapi.responses import StreamingResponse
 from influxdb_client import QueryApi
 
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.api.endpoints.bill.core import (
     create_bill,
     Status,
@@ -19,7 +22,8 @@ from src.api.endpoints.bill.core import (
     day_heats_by_range,
 )
 from src.schemas.bill import BillResponse
-from src.core.db import get_influx_query
+from src.core.db import get_db_session, get_influx_query
+from src.models import User
 
 router = APIRouter(prefix="/bill")
 
@@ -27,13 +31,18 @@ router = APIRouter(prefix="/bill")
 @router.post("/")
 async def add_bill(
     user_id: int,
-    flat_id: int,
     influx_start: str,
     influx_stop: str,
-    query_api: QueryApi = Depends(get_influx_query)):  # type: ignore
+    query_api: QueryApi = Depends(get_influx_query),
+    session: AsyncSession = Depends(get_db_session),
+):  # type: ignore
+    query = select(User.flat).where(User.id == user_id)
+    flat_id = (await session.execute(query)).scalars().first()
     return {
         "bill_id": await create_bill(
-            amount=heat_cost(query_api, flat_id, (influx_start, influx_stop)), status=Status.UNPAID, user_id=user_id
+            amount=heat_cost(query_api, flat_id, (influx_start, influx_stop)),
+            status=Status.UNPAID,
+            user_id=user_id,
         )
     }
 
