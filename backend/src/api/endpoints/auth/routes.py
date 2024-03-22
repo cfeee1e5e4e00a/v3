@@ -8,6 +8,7 @@ from src.api.endpoints.auth.core import (
     create_access_token,
     current_user,
     create_user,
+    get_user_by_flat,
 )
 from src.schemas.auth import LoginRequest, UserResponse
 from src.core.db import async_session_factory
@@ -35,6 +36,13 @@ async def admin_ep(
 async def get_me(
     user: current_user(),  # type: ignore
 ):
+
+    return user
+
+
+@router.get("/by-flat/{flat}", response_model=UserResponse)
+async def get_user_info_by_flat(flat: int, user: current_user([Role.ADMIN])):  # type: ignore
+    user = await get_user_by_flat(flat)
 
     return user
 

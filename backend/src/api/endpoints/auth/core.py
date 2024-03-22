@@ -44,6 +44,12 @@ async def get_user(name: str) -> User | None:
         return (await session.execute(query)).scalars().first()
 
 
+async def get_user_by_flat(flat: int) -> User | None:
+    async with async_session_factory() as session:
+        query = select(User).where(User.flat == flat)
+        return (await session.execute(query)).scalars().first()
+
+
 async def auth_user(name: str, password: str) -> User | None:
     user = await get_user(name)
     if user is None:
