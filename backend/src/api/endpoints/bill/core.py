@@ -1,6 +1,5 @@
 import json
 import numpy as np
-from math import log2, e
 from io import BytesIO
 from matplotlib import pyplot as plt
 from typing import Literal
@@ -8,11 +7,10 @@ import numpy as np
 from datetime import datetime
 from fpdf import FPDF
 from sqlalchemy import select
-from itertools import islice
 from influxdb_client import QueryApi
 from influxdb_client.client.flux_table import FluxRecord
 
-from models import (
+from src.models import (
     _CENTRAL_WINDOWS_SIZE,
     _FLAT_VOLUME,
     _FLAT_WINDOWS_SIZE,
@@ -61,6 +59,7 @@ def stabilization_cost(flat_id: int, dT: np.ndarray, dt: float) -> float:
         * np.where(dT <= 0, 0, dT)
     )
 
+
 # TODO: Добавить сюда энергопотребление в процентах
 def regulation_cost(flat_id: int, T_in: float, T_in_previous: float) -> float:
     divT = T_in / T_in_previous
@@ -77,7 +76,7 @@ def day_heats_by_range(
     flat_id: int,
     time_range: tuple[str, str],
     *,
-    agg_every: str = None,
+    agg_every: str = "12s",
     agg_fn: Literal["mean", "median", "last"] = None,
 ) -> np.ndarray[float]:
     start, stop = time_range
@@ -86,7 +85,7 @@ def day_heats_by_range(
     |> filter(fn: (r) => r["_measurement"] == "temp")\
     |> filter(fn: (r) => r["flat"] == "{flat_id}")\
     |> drop(columns: ["_field", "_measurement", "flat", "host", "topic"])\
-    |> aggregateWindow(every: 12s, fn: mean, createEmpty: false)"""
+    |> aggregateWindow(every: {agg_every}, fn: {agg_fn}, createEmpty: false)"""
     T_out = 24.2
     T_in = query_api.query(_itt_querry)[0]
 
@@ -128,6 +127,8 @@ async def generate_pdf(bill_id: int):
         pdf.add_font(family="b52", fname="src/FPDF_FONT_DIR/B52.ttf")
         pdf.set_font("b52", size=40)
         pdf.cell(text="Счет на оплату")
+        # TODO: Apply heat cost
+        # TODO: Apply heat amount
         pdf.multi_cell(
             text=f" Объём потреблённого тепла: {100} \n К оплате: {1000}",
             align="C",

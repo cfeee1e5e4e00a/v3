@@ -87,7 +87,7 @@ async def get_measurement_data(
 @router.get("/{flat}/can_decrease_energy")
 async def check_flat_energy_possibility(
     flat: int,
-    dDolya: "float[0, 1]",
+    dDolya: float,
     query_api: QueryApi = Depends(get_influx_query),
 ) -> bool:
     last_taget_temp_query = f"""from(bucket: "default")
@@ -113,7 +113,7 @@ async def check_flat_energy_possibility(
 @router.get("/flats/can_decrease_energy")
 async def check_flat_energy_possibilities(
     flat: int,
-    dDolya: "float[0, 1]",
+    dDolya: float,
     query_api: QueryApi = Depends(get_influx_query),
 ) -> bool:
     all_last_target_temps_query = f"""from(bucket: "default")
@@ -133,3 +133,7 @@ async def check_flat_energy_possibilities(
     # TODO: current_consumptions - min_consumptions = dCumsuctions
     # TODO: np.sum(dCumsuctions) / 6 = dNormalizedSumCumsuction
     # TODO: if dNormalizedSumCumsuction > dDolya then true else false
+
+
+# @router.get("/flats/can_decrease_energy")
+# async def check_flat_energy_possibilities(
