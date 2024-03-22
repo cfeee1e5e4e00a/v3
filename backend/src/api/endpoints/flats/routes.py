@@ -175,7 +175,7 @@ async def check_flat_energy_possibilities(
 
 @router.post("/{flat_id}/energy_efic")
 def energy_efficiency(
-    flat_id: int, dolya: float, query_api: QueryApi = Depends(get_influx_query)
+    flat_id: int, query_api: QueryApi = Depends(get_influx_query)
 ) -> float:
     all_last_target_temps_query = f"""from(bucket: "default")
     |> range(start: -3d, stop: -0s)
@@ -199,6 +199,40 @@ def energy_efficiency(
     kngh = query_api.query(vashe_nasrat_pochti_kpd)[0].records[0].get_value()
 
     return α * _FLAT_WINDOWS_SIZE.get(flat_id) * (T - T_out) / (P_max * kngh)
+
+
+@router.post("/flats/energy_efic")
+async def energy_efficiency(query_api: QueryApi = Depends(get_influx_query)) -> float:
+    all_last_target_temps_query = f"""from(bucket: "default")
+    |> range(start: -1d, stop: -0s)
+    |> filter(fn: (r) => r["_measurement"] == "temp")
+    |> filter(fn: (r) => r["_field"] == "value")
+    |> filter(fn: (r) => r["host"] == "451a5c0e4890")
+    |> aggregateWindow(every: 12s, fn: mean, createEmpty: false)
+    |> drop(columns: ["topic", "host", "_measurement", "_field", "_time"])
+    |> last()"""
+    vashe_nasrat_pochti_kpd = f"""from(bucket: "default")
+    |> range(start: -1d, stop: -0s)
+    |> filter(fn: (r) => r["_measurement"] == "consumption")
+    |> filter(fn: (r) => r["_field"] == "value")
+    |> filter(fn: (r) => r["host"] == "451a5c0e4890")
+    |> aggregateWindow(every: 12s, fn: mean, createEmpty: false)
+    |> last()"""
+    Ts = [
+        (t.get_value(), t["flat"])
+        for t in query_api.query(all_last_target_temps_query)[0].records
+    ]
+    knghs = [t.get_value() for t in query_api.query(vashe_nasrat_pochti_kpd)[0].records]
+
+    aksdjsa = sum(min(1, max(0, P_max * kngh)) for kngh in knghs)
+
+    if aksdjsa == 0:
+        return 1
+
+    return (
+        sum(α * _FLAT_WINDOWS_SIZE.get(int(flat)) * (T - T_out) for T, flat in Ts)
+        / aksdjsa
+    )
 
 
 # NOTE: THIS SHOULD BE THE LOWEST DEFINED HANDLE
