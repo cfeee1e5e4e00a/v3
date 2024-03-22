@@ -20,7 +20,7 @@ export async function toggleFlat(params: ToggleFlatParams): Promise<void> {
         `http://diarrhea.cfeee1e5e4e00a.ru:8000/flats/${params.flat}/toggle`,
     );
 
-    url.searchParams.set('state', params.state);
+    url.searchParams.set('state', String(params.state));
 
     const res = await ky.post(url, {
         headers: {
