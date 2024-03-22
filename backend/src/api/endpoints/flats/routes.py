@@ -82,3 +82,54 @@ async def get_measurement_data(
             chain.from_iterable(table.records for table in tables),
         ),
     )
+
+
+@router.get("/{flat}/can_decrease_energy")
+async def check_flat_energy_possibility(
+    flat: int,
+    dDolya: "float[0, 1]",
+    query_api: QueryApi = Depends(get_influx_query),
+) -> bool:
+    last_taget_temp_query = f"""from(bucket: "default")
+    |> range(start: -3d, stop: -0s)
+    |> filter(fn: (r) => r["_measurement"] == "target_temp")
+    |> filter(fn: (r) => r["_field"] == "value")
+    |> filter(fn: (r) => r["flat"] == "{flat}")
+    |> drop(columns: ["_measurement", "_field", "_time", "flat"])
+    |> last()"""
+    last_current_consumption_query = f"""from(bucket: "default")
+    |> range(start: -3d, stop: -0s)
+    |> filter(fn: (r) => r["_measurement"] == "consumption")
+    |> filter(fn: (r) => r["_field"] == "value")
+    |> filter(fn: (r) => r["flat"] == "{flat}")
+    |> drop(columns: ["_measurement", "_field", "_time", "flat"])
+    |> last()"""
+    # TODO: parse queries to floats
+    # TODO: count min_consumption from target_temp
+    # TODO: current_consumption - min_consumption = dCumsuction
+    # TODO: if dCumsuction > dDolya then true else false
+
+
+@router.get("/flats/can_decrease_energy")
+async def check_flat_energy_possibilities(
+    flat: int,
+    dDolya: "float[0, 1]",
+    query_api: QueryApi = Depends(get_influx_query),
+) -> bool:
+    all_last_target_temps_query = f"""from(bucket: "default")
+    |> range(start: -3d, stop: -0s)
+    |> filter(fn: (r) => r["_measurement"] == "target_temp")
+    |> filter(fn: (r) => r["_field"] == "value")
+    |> drop(columns: ["_measurement", "_field", "_time"])
+    |> last()"""
+    all_last_consumption_rates = f"""from(bucket: "default")
+    |> range(start: -3d, stop: -0s)
+    |> filter(fn: (r) => r["_measurement"] == "consumption")
+    |> filter(fn: (r) => r["_field"] == "value")
+    |> drop(columns: ["_measurement", "_field", "_time"])
+    |> last()"""
+    # TODO: parse queries to float arrays
+    # TODO: count min_consumptions from target_temps
+    # TODO: current_consumptions - min_consumptions = dCumsuctions
+    # TODO: np.sum(dCumsuctions) / 6 = dNormalizedSumCumsuction
+    # TODO: if dNormalizedSumCumsuction > dDolya then true else false

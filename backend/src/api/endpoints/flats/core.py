@@ -9,7 +9,7 @@ from src.core.config import InfluxSettings
 from src.api.endpoints.mqtt.client import mqtt
 from src.core.db import async_session_factory
 from src.models.user import User
-from src.models import TempScheduleEntry
+from src.models import TempScheduleEntry, α, P_max, _FLAT_WINDOWS_SIZE, T_out
 
 
 def notify_device_target_flat_temperature(flat: int, temp: float):
@@ -19,7 +19,7 @@ def notify_device_target_flat_temperature(flat: int, temp: float):
 
 def notify_device_schedule_segment(flat: int, segment: TempScheduleEntry):
     # mode target_temp time(seconds)
-    payload = f'2 {segment.target_temp} {max(segment.end_offset - (datetime.datetime.now() - segment.start_time).seconds, 1)}'
+    payload = f"2 {segment.target_temp} {max(segment.end_offset - (datetime.datetime.now() - segment.start_time).seconds, 1)}"
     mqtt.client.publish(f"/mode/{flat}", payload, qos=1)
 
 
@@ -67,3 +67,10 @@ async def is_flat_disabled(flat: int):
         query = select(User).where(User.flat == flat)
         user = (await session.execute(query)).scalars().first()
         return user.disabled
+
+
+def get_asymptotic_T_by_efficiency(η: "float[-100, 100]", flat_id: int) -> float:
+    return 2 * P_max * η / α / _FLAT_WINDOWS_SIZE.get(flat_id) + T_out
+
+
+def energy_effciency(flat_id: int, dolya: "float[0, 1]") -> "float[-1, 1]": ...

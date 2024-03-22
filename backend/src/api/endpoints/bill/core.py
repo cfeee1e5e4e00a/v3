@@ -12,37 +12,16 @@ from itertools import islice
 from influxdb_client import QueryApi
 from influxdb_client.client.flux_table import FluxRecord
 
+from models import (
+    _CENTRAL_WINDOWS_SIZE,
+    _FLAT_VOLUME,
+    _FLAT_WINDOWS_SIZE,
+    _SECOND_FLOOR_FLAT_VOLUME,
+    α,
+    dQ_to_V,
+)
 from src.core.db import async_session_factory, get_influx_query
 from src.models.bill import Bill, Status
-
-
-type m2 = float
-type m3 = float
-
-α = 20  # window heat transfer coef
-dQ_to_V = 350.722  # heat per logarifmic ration of temperatures per volume
-
-_SIDE_WINDOWS_SIZE: m2 = 0.0093
-_CENTRAL_WINDOWS_SIZE: m2 = 0.0057
-_FLAT_WINDOWS_SIZE: dict[int, m2] = {
-    1: _SIDE_WINDOWS_SIZE,
-    2: _CENTRAL_WINDOWS_SIZE,
-    3: _SIDE_WINDOWS_SIZE,
-    4: _SIDE_WINDOWS_SIZE,
-    5: _CENTRAL_WINDOWS_SIZE,
-    6: _SIDE_WINDOWS_SIZE,
-}
-
-_SECOND_FLOOR_FLAT_VOLUME: m3 = 0.002
-_FIRST_FLOOR_FLAT_VOLUME: m3 = 0.00225
-_FLAT_VOLUME: dict[int, m3] = {
-    1: _SECOND_FLOOR_FLAT_VOLUME,
-    2: _SECOND_FLOOR_FLAT_VOLUME,
-    3: _SECOND_FLOOR_FLAT_VOLUME,
-    4: _FIRST_FLOOR_FLAT_VOLUME,
-    5: _FIRST_FLOOR_FLAT_VOLUME,
-    6: _FIRST_FLOOR_FLAT_VOLUME,
-}
 
 
 async def create_bill(amount: float, status: Status, user_id: int):
@@ -82,7 +61,7 @@ def stabilization_cost(flat_id: int, dT: np.ndarray, dt: float) -> float:
         * np.where(dT <= 0, 0, dT)
     )
 
-
+# TODO: Добавить сюда энергопотребление в процентах
 def regulation_cost(flat_id: int, T_in: float, T_in_previous: float) -> float:
     divT = T_in / T_in_previous
     divT = np.where(divT < 1, 1.0, divT)
@@ -211,9 +190,7 @@ async def make_report_user_1_floor(
     Ys = []
     for i in data:
         Ys.append(i["_value"])
-        Xs.append(
-            datetime.fromisoformat(i["_time"]) + datetime.timedelta(hours=7)
-        )
+        Xs.append(datetime.fromisoformat(i["_time"]) + datetime.timedelta(hours=7))
     # print(data)
 
     consumption_chart = gen_images(
@@ -233,9 +210,7 @@ async def make_report_user_1_floor(
     Ys = []
     for i in data:
         Ys.append(i["_value"])
-        Xs.append(
-            datetime.fromisoformat(i["_time"]) + datetime.timedelta(hours=7)
-        )
+        Xs.append(datetime.fromisoformat(i["_time"]) + datetime.timedelta(hours=7))
     trend_chart = gen_images(Xs, Ys, "Дата", "Заданная температура", "not used")
 
     # url = f'http://grafana.cfeee1e5e4e00a.ru:3000/render/d-solo/e6808168-29f4-4aca-854e-88948c406ff9/billing?orgId=1&from=1711005732627&to=1711027332627&theme=light&panelId=1&width=1000&height=500&tz=Asia%2FTomsk'
