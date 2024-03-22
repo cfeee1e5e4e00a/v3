@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 from typing import Literal
 import numpy as np
 from datetime import datetime
+from datetime import timedelta
 from fpdf import FPDF
 from sqlalchemy import select
 from influxdb_client import QueryApi
@@ -191,7 +192,7 @@ async def make_report_user_1_floor(
     Ys = []
     for i in data:
         Ys.append(i["_value"])
-        Xs.append(datetime.fromisoformat(i["_time"]) + datetime.timedelta(hours=7))
+        Xs.append(datetime.fromisoformat(i["_time"]) + timedelta(hours=7))
     # print(data)
 
     consumption_chart = gen_images(
@@ -211,7 +212,7 @@ async def make_report_user_1_floor(
     Ys = []
     for i in data:
         Ys.append(i["_value"])
-        Xs.append(datetime.fromisoformat(i["_time"]) + datetime.timedelta(hours=7))
+        Xs.append(datetime.fromisoformat(i["_time"]) + timedelta(hours=7))
     trend_chart = gen_images(Xs, Ys, "Дата", "Заданная температура", "not used")
 
     # url = f'http://grafana.cfeee1e5e4e00a.ru:3000/render/d-solo/e6808168-29f4-4aca-854e-88948c406ff9/billing?orgId=1&from=1711005732627&to=1711027332627&theme=light&panelId=1&width=1000&height=500&tz=Asia%2FTomsk'

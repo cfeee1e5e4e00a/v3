@@ -84,7 +84,7 @@ async def get_measurement_data(
     )
 
 
-@router.get("/{flat}/can_decrease_energy")
+@router.post("/{flat}/can_decrease_energy")
 async def check_flat_energy_possibility(
     flat: int,
     dDolya: float,
@@ -110,7 +110,7 @@ async def check_flat_energy_possibility(
     # TODO: if dCumsuction > dDolya then true else false
 
 
-@router.get("/flats/can_decrease_energy")
+@router.post("/flats/can_decrease_energy")
 async def check_flat_energy_possibilities(
     flat: int,
     dDolya: float,
