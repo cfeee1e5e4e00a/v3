@@ -46,7 +46,7 @@ export const DashboardMyFlatPage: FC = () => {
             <FlatMeasurementChart
                 measurement={MeasurementType.CURRENT}
                 label="Потребление тока в А"
-                title="Потрбление тока в квартире"
+                title="Потребление тока в квартире"
             />
         </main>
     );

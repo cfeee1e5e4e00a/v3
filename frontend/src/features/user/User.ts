@@ -9,4 +9,5 @@ export type User = {
     name: string;
     role: Role;
     flat: number;
+    disabled: boolean;
 };
