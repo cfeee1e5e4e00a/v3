@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 
 from fastapi import Depends, APIRouter, HTTPException
@@ -20,6 +21,8 @@ from src.api.endpoints.flats.core import (
     toggle_flat,
 )
 from src.schemas.schedule import Schedule
+
+from src.models import α, T_out, P_max, _FLAT_WINDOWS_SIZE
 
 router = APIRouter(prefix="/flats")
 
@@ -98,6 +101,7 @@ async def check_flat_energy_possibility(
     dDolya: float,
     query_api: QueryApi = Depends(get_influx_query),
 ) -> bool:
+    # -> bool
     last_taget_temp_query = f"""from(bucket: "default")
     |> range(start: -3d, stop: -0s)
     |> filter(fn: (r) => r["_measurement"] == "target_temp")
@@ -112,10 +116,13 @@ async def check_flat_energy_possibility(
     |> filter(fn: (r) => r["flat"] == "{flat}")
     |> drop(columns: ["_measurement", "_field", "_time", "flat"])
     |> last()"""
-    # TODO: parse queries to floats
-    # TODO: count min_consumption from target_temp
-    # TODO: current_consumption - min_consumption = dCumsuction
-    # TODO: if dCumsuction > dDolya then true else false
+    data = query_api.query(last_taget_temp_query)[0].records[0].row[-1]
+    krack = ((data - T_out) * α * _FLAT_WINDOWS_SIZE.get(flat))/(2 * P_max)
+
+    cur = query_api.query(last_current_consumption_query)[0].records[0].get_value()
+
+    return cur-krack > dDolya
+
 
 
 @router.post("/flats/can_decrease_energy")

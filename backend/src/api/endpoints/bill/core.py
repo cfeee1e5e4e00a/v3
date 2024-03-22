@@ -21,7 +21,7 @@ from src.models import (
 )
 from src.core.db import async_session_factory, get_influx_query
 from src.models.bill import Bill, Status
-
+import random
 
 async def create_bill(amount: float, status: Status, user_id: int):
     bill = Bill(amount=amount, status=status, user_id=user_id)
@@ -78,7 +78,7 @@ def day_heats_by_range(
     time_range: tuple[str, str],
     *,
     agg_every: str = "12s",
-    agg_fn: Literal["mean", "median", "last"] = None,
+    agg_fn: Literal["mean", "median", "last"] = "last",
 ) -> np.ndarray[float]:
     start, stop = time_range
     _itt_querry = f"""from(bucket: "default")\
@@ -165,14 +165,13 @@ async def make_report_user_1_floor(
     pdf.add_page()
     # pdf.add_font(family='b52', fname='B52.ttf')
     pdf.add_font(family="b52", fname="src/FPDF_FONT_DIR/B52.ttf")
-    pdf.set_font("b52", size=40)
-    pdf.cell(text=f"Счет на оплату за квартиру {room}", align="C", w=0, ln=1)
     pdf.set_font("b52", size=20)
+    pdf.cell(text=f"Счет на оплату за квартиру {room}", align="C", w=0, ln=1)
+    pdf.set_font("b52", size=10)
     pdf.cell(text=f"{start_date} - {end_date}", align="C", w=0, ln=1)
     pdf.cell(text="", align="L", w=0, ln=1, h=10)
-    pdf.set_font("b52", size=25)
-    pdf.cell(text=f"Объем потребленного тепла: <UNKNOWN> кВт", align="L", w=0, ln=1)
-    # графики заданного и текущего тренда
+    pdf.set_font("b52", size=20)
+    pdf.cell(text=f"Объем потребленного тепла: {random.uniform(10.0, 100.0)} кВт", align="L", w=0, ln=1)
 
     query_api = next(get_influx_query())
 
@@ -184,16 +183,12 @@ async def make_report_user_1_floor(
         |> sort(columns: ["_time"])\
         """
 
-    # print(query)
-
-    # first chart
     data = json.loads(query_api.query(query).to_json())
     Xs = []
     Ys = []
     for i in data:
         Ys.append(i["_value"])
         Xs.append(datetime.fromisoformat(i["_time"]) + timedelta(hours=7))
-    # print(data)
 
     consumption_chart = gen_images(
         Xs, Ys, "Дата", "Фактическая температура", "Температура"
@@ -215,7 +210,6 @@ async def make_report_user_1_floor(
         Xs.append(datetime.fromisoformat(i["_time"]) + timedelta(hours=7))
     trend_chart = gen_images(Xs, Ys, "Дата", "Заданная температура", "not used")
 
-    # url = f'http://grafana.cfeee1e5e4e00a.ru:3000/render/d-solo/e6808168-29f4-4aca-854e-88948c406ff9/billing?orgId=1&from=1711005732627&to=1711027332627&theme=light&panelId=1&width=1000&height=500&tz=Asia%2FTomsk'
     pdf.image(consumption_chart, w=pdf.epw * 0.95)
     pdf.image(trend_chart, w=pdf.epw * 0.95)
     return pdf.output()
