@@ -71,6 +71,3 @@ async def is_flat_disabled(flat: int):
 
 def get_asymptotic_T_by_efficiency(η: "float[-100, 100]", flat_id: int) -> float:
     return 2 * P_max * η / α / _FLAT_WINDOWS_SIZE.get(flat_id) + T_out
-
-
-def energy_effciency(flat_id: int, dolya: float) -> float: ...

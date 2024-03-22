@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from numpy import exp2
 
 from fastapi import Depends, APIRouter, HTTPException
 from influxdb_client import QueryApi, WriteApi
@@ -117,12 +118,11 @@ async def check_flat_energy_possibility(
     |> drop(columns: ["_measurement", "_field", "_time", "flat"])
     |> last()"""
     data = query_api.query(last_taget_temp_query)[0].records[0].row[-1]
-    krack = ((data - T_out) * α * _FLAT_WINDOWS_SIZE.get(flat))/(2 * P_max)
+    krack = ((data - T_out) * α * _FLAT_WINDOWS_SIZE.get(flat)) / (2 * P_max)
 
     cur = query_api.query(last_current_consumption_query)[0].records[0].get_value()
 
-    return cur-krack > dDolya
-
+    return cur - krack > dDolya
 
 
 @router.post("/flats/can_decrease_energy")
@@ -171,6 +171,34 @@ async def check_flat_energy_possibilities(
 
     # TODO: if dNormalizedSumCumsuction > dDolya then true else false
     return dNormalizedSumCumsuction > dDolya
+
+
+@router.post("/{flat_id}/energy_efic")
+def energy_efficiency(
+    flat_id: int, dolya: float, query_api: QueryApi = Depends(get_influx_query)
+) -> float:
+    all_last_target_temps_query = f"""from(bucket: "default")
+    |> range(start: -3d, stop: -0s)
+    |> filter(fn: (r) => r["_measurement"] == "temp")
+    |> filter(fn: (r) => r["_field"] == "value")
+    |> filter(fn: (r) => r["flat"] == "{flat_id}")
+    |> filter(fn: (r) => r["host"] == "451a5c0e4890")
+    |> aggregateWindow(every: 12s, fn: mean, createEmpty: false)
+    |> drop(columns: ["topic", "host", "_measurement", "_field", "_time"])
+    |> last()"""
+    vashe_nasrat_pochti_kpd = f"""from(bucket: "default")
+    |> range(start: -2d, stop: -0s)
+    |> filter(fn: (r) => r["_measurement"] == "consumption")
+    |> filter(fn: (r) => r["_field"] == "value")
+    |> filter(fn: (r) => r["flat"] == "{flat_id}")
+    |> filter(fn: (r) => r["host"] == "451a5c0e4890")
+    |> aggregateWindow(every: 12s, fn: mean, createEmpty: false)
+    |> yield(name: "mean")
+    |> last()"""
+    T = query_api.query(all_last_target_temps_query)[0].records[0].get_value()
+    kngh = query_api.query(vashe_nasrat_pochti_kpd)[0].records[0].get_value()
+
+    return α * _FLAT_WINDOWS_SIZE.get(flat_id) * (T - T_out) / (P_max * kngh)
 
 
 # NOTE: THIS SHOULD BE THE LOWEST DEFINED HANDLE
